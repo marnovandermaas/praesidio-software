@@ -1,59 +1,95 @@
+import os
 
-main = "management"
-instr = "instructions"
-init = "init"
+buildDir = "build/"
+workDir = "../work/"
+manageDir = "managementshim/"
+libDir = "lib/"
+benchmarkRootDir = "benchmarks/"
+benchmarkDirs = [x[0]+"/" for x in os.walk(benchmarkRootDir)] #Get all the direct subdirectories of the benchmarks folder.
+benchmarkDirs = benchmarkDirs[1:] #Exclude root dir
 
-depDict = {
-    main: [instr],
-    instr: [main],
-}
+shim = manageDir+"management"
+instr = libDir+"instructions"
+managementInit = manageDir+"managementinit"
+enclaveInit = libDir+"enclaveinit"
 
-output = "run.out"
-binaryFile = "management.bin"
-dumpFile = "memory.dump"
+binaries = [buildDir+shim]
+inits = [managementInit, enclaveInit]
 
 riscvPrefix = "riscv64-unknown-linux-gnu-"
-compiler = riscvPrefix+"gcc"
-compilerFlags = " -nostdlib -mcmodel=medany -Tlink.ld "
+compiler = riscvPrefix+"gcc "
+includeCompilerFlags = "-I"+libDir+" -I"+manageDir+ " "
+bareCompileFlags = includeCompilerFlags + "-nostdlib -mcmodel=medany "
+enclaveCompilerFlags = bareCompileFlags + "-T"+libDir+"enclavelink.ld "
+shimCompilerFlags = bareCompileFlags + "-T"+manageDir+"managementlink.ld "
+
+allObjects = [shim, instr, libDir+"praesidioenclave", libDir+"praesidiouser"]
+userExecs = []
+compileFlagOutDeps = []
+compileFlagOutDeps.append( (shimCompilerFlags, buildDir+shim+".out", [buildDir+val+".o" for val in [shim, managementInit, instr]]) )
+for dir in benchmarkDirs:
+    outputFile = dir+"enclave"
+    userFile = dir+"user"
+    userExecs.append(buildDir+userFile)
+    binaries.append(buildDir+outputFile)
+    allObjects.append(outputFile)
+    allObjects.append(userFile)
+    compileFlagOutDeps.append( (enclaveCompilerFlags, buildDir+outputFile+".out", [buildDir+val+".o" for val in [outputFile, enclaveInit, instr, libDir+"praesidioenclave"]]) )
+    compileFlagOutDeps.append( ("", buildDir+userFile+".out", [buildDir+val+".o" for val in [userFile, instr, libDir+"praesidiouser"]]) )
 
 def task_compile():
-    return {
-        'actions': [compiler + compilerFlags + " -o " + output + " " + init + ".o " + (' '.join([key + ".o" for key in depDict.keys()]))],
-        'file_dep': [init+".o"] + [key+".o" for key in depDict.keys()],
-        'targets': [output],
-        'clean': True
-    }
+    for flags,out,deps in compileFlagOutDeps:
+        yield {
+            'name':     out,
+            'actions':  [compiler + flags + " -o " + out + " " + (" ".join(deps))],
+            'file_dep': deps,
+            'targets':  [out],
+            'clean':    True
+        }
 
 def task_init():
-  return {
-    'actions': [compiler + " -c " + init + ".s -o " + init + ".o"],
-    'file_dep': [],
-    'targets': [init + ".o"]
-  }
+    for val in inits:
+        yield {
+            'name':     val+".o",
+            'actions':  [compiler + " -c " + val+".s -o " + buildDir+val+".o"],
+            'file_dep': [],
+            'targets':  [buildDir+val+".o"]
+        }
 
 def task_object():
-    for key in depDict.keys():
+    for obj in allObjects:
         yield {
-            'name': key,
-            'actions': [compiler + compilerFlags + " -c %s" % (key + ".c")],
-            'file_dep': [init+".o"] + [key + ".c", key + ".h"] + [val + ".h" for val in depDict[key]],
-            'targets': [key + ".o"],
-            'clean': True
+            'name':     obj+".o",
+            'actions':  [compiler + includeCompilerFlags + " -o " + buildDir+obj+".o -c "+obj+".c"],
+            'file_dep': [buildDir+val+".o" for val in inits],
+            'targets':  [buildDir+obj+".o"],
+            'clean':    True
         }
 
 def task_bin():
-  return {
-    'actions': [riscvPrefix+"objcopy -O binary " + output + " " + binaryFile,
-        'cp ' + binaryFile + " ../../work/riscv-isa-sim/"],
-    'file_dep': [output],
-    'targets': [binaryFile],
-    'clean': True
-  }
+    for val in binaries:
+        yield {
+            'name':     val+".bin",
+            'actions':  [riscvPrefix+"objcopy -O binary " + val+".out " + val+".bin" for val in binaries],
+            'file_dep': [val+".out"],
+            'targets':  [val+".bin"],
+            'clean':    True
+        }
 
-def task_dump():
+def task_copy():
     return {
-        'actions': [riscvPrefix+"objdump -D " + output + " > " + dumpFile],
-        'file_dep': [output],
-        'targets': [dumpFile],
-        'clean': True
+        'actions':  ["cp " + buildDir+shim+".bin " + workDir+"riscv-isa-sim/"] + ["cp -r " + buildDir+benchmarkRootDir+" " + workDir+"buildroot_initramfs_sysroot/root/"] + ['echo "#" >> ../conf/linux_defconfig'] + ["touch "+buildDir+"copy.tmp"],
+        'file_dep': [buildDir+shim+".bin"],
+        'targets':  [buildDir+"copy.tmp"],
+        'clean':    True
     }
+
+print(task_copy()['actions'])
+
+# def task_dump():
+#     return {
+#         'actions': [riscvPrefix+"objdump -D " + output + " > " + dumpFile],
+#         'file_dep': [output],
+#         'targets': [dumpFile],
+#         'clean': True
+#     }
