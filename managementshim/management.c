@@ -1,8 +1,6 @@
-typedef unsigned long uint64_t; //TODO make sure it is 64-bit
 #include "management.h"
 #include "instructions.h"
 #include <stdio.h>
-#include "../riscv/debug.h"
 
 #define PAGE_SIZE (1 << PAGE_BIT_SHIFT) //2^12 = 4096 number of Bytes
 

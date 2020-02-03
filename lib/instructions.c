@@ -1,5 +1,4 @@
-typedef unsigned long uint64_t; //TODO make sure it is 64-bit
-
+#include "unsignedinteger.h"
 #include "instructions.h"
 
 void switchEnclaveID(enclave_id_t id) {

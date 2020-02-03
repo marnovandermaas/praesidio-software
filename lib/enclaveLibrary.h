@@ -6,12 +6,14 @@
 #define ENCLAVE_INVALID_ID    (0xFFFFFFFFFFFFFFFF)
 
 #define MANAGEMENT_ENCLAVE_BASE 0x04000000 //This number should be above 0x020c 0000 which is the end of CLINT and below 0x0400 0000 which is the start of IO
-
-// typedef unsigned long uint64_t; //TODO make sure it is 64-bit
-typedef unsigned short uint16_t; //TODO make sure it is 16-bit
-typedef unsigned int uint32_t; //TODO make sure it is 32-bit
+#ifndef DRAM_BASE
+#define DRAM_BASE               0x80000000
+#endif
 
 typedef uint64_t enclave_id_t;
+typedef uint32_t CoreID_t;
+
+#define PAGE_BIT_SHIFT (12)
 
 enum MessageType_t {
   MSG_CREATE_ENCLAVE    = 0x0,
@@ -23,6 +25,20 @@ enum MessageType_t {
   MSG_INTER_ENCLAVE     = 0x6,
   MSG_SET_ARGUMENT      = 0x7,
   MSG_MASK              = 0xF,
+};
+
+#define SIZE_OF_MESSAGE_TYPE 4 //Assuming message type can fit in this many bits.
+
+enum boolean {
+  BOOL_FALSE=0,
+  BOOL_TRUE=1,
+};
+
+struct Message_t {
+  enum MessageType_t type;
+  enclave_id_t source;
+  enclave_id_t destination;
+  unsigned long content; //Assuming that an int can fit an Address_t
 };
 
 #endif //ENCLAVE_LIBRARY_HEADER

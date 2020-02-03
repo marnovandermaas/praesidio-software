@@ -1,7 +1,6 @@
 #ifndef PRAESIDIO_HEADER
 #define PRAESIDIO_HEADER
 
-#include "management.h"
 #include "instructions.h"
 
 #define NUMBER_OF_ENCLAVE_PAGES       (2)

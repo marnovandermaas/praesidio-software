@@ -11,7 +11,7 @@ long create_enclave(void *enclave_memory)
 
 int main(void)
 {
-  FILE *fp = fopen("e.bin", "r");
+  FILE *fp = fopen("enclave.bin", "r");
   int c;
   size_t i = 0;
   char *enclave_memory_buffer = malloc(NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT);

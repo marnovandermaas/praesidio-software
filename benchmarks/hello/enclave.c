@@ -1,5 +1,4 @@
-typedef unsigned long uint64_t; //TODO make sure it is 64-bit
-#include <praesidioenclave.h>
+#include "praesidioenclave.h"
 
 int main() {
   char hello_string[64];

@@ -1,10 +1,10 @@
 #ifndef PRAESIDIO_INSTRUCTIONS_H
 #define PRAESIDIO_INSTRUCTIONS_H
 
-#include "management.h"
+#include "enclaveLibrary.h"
 
 void switchEnclaveID(enclave_id_t id);
-int* derivePhysicalCapability(struct PhysCap_t sourceCap);
+//int* derivePhysicalCapability(struct PhysCap_t sourceCap);
 CoreID_t getCoreID(void);
 enclave_id_t getCurrentEnclaveID(void);
 //This is a helper instruction, but will be removed in final design

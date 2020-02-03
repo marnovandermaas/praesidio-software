@@ -1,9 +1,8 @@
 #ifndef PRAESIDIO_MANAGEMENT_H
 #define PRAESIDIO_MANAGEMENT_H
 
+#include "unsignedinteger.h"
 #include "enclaveLibrary.h"
-
-#define PAGE_BIT_SHIFT (12)
 
 //Definition of the base addresses of the three trusted pages:
 #define MANAGEMENT_CODE_BASE_ADDRESS ((Address_t) MANAGEMENT_ENCLAVE_BASE)
@@ -16,7 +15,6 @@
 typedef unsigned long Address_t;
 typedef uint16_t Permissions_t;
 typedef int Register_t;
-typedef uint32_t CoreID_t;
 
 struct Context_t {
   Register_t registerFile[32];
@@ -51,20 +49,6 @@ struct ManagementState_t { //TODO make the runningEnclaves and enclaveCores vari
   struct PhysCap_t rootCapability; //Initialize with special instruction
   Address_t PagePool; //Initialize as Null
   CoreID_t enclaveCores[NUMBER_OF_ENCLAVE_CORES]; //Initialize using which core identifiers belong to all the enclave cores
-};
-
-#define SIZE_OF_MESSAGE_TYPE 4 //Assuming message type can fit in this many bits.
-
-enum boolean {
-  BOOL_FALSE=0,
-  BOOL_TRUE=1,
-};
-
-struct Message_t {
-  enum MessageType_t type;
-  enclave_id_t source;
-  enclave_id_t destination;
-  unsigned long content; //Assuming that an int can fit an Address_t
 };
 
 #endif //PRAESIDIO_MANAGEMENT_H

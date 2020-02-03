@@ -1,8 +1,9 @@
 #ifndef PRAESIDIO_ENCLAVE_HEADER
 #define PRAESIDIO_ENCLAVE_HEADER
 
+#include "unsignedinteger.h"
 #include "praesidio.h"
-#include "../riscv/encoding.h"
+//#include "../riscv/encoding.h"
 
 int give_read_permission(void* page_base, enclave_id_t receiver_id);
 
