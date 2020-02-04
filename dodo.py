@@ -47,12 +47,28 @@ def task_compile():
             'clean':    True
         }
 
+tmpAllDirs = [manageDir, libDir]
+tmpAllDirs += benchmarkDirs
+buildDirs = []
+for val in tmpAllDirs:
+    buildDirs.append(""+buildDir+val)
+
+def task_mkdirs():
+    for val in buildDirs:
+        yield {
+            'name':     val,
+            'actions':  ["mkdir -p " + val],
+            'file_dep': [],
+            'targets':  [val],
+        }
+
 def task_init():
     for val in inits:
         yield {
             'name':     val+".o",
             'actions':  [compiler + " -c " + val+".s -o " + buildDir+val+".o"],
             'file_dep': [],
+            'task_dep': ['mkdirs'],
             'targets':  [buildDir+val+".o"]
         }
 
@@ -62,6 +78,7 @@ def task_object():
             'name':     obj+".o",
             'actions':  [compiler + includeCompilerFlags + " -o " + buildDir+obj+".o -c "+obj+".c"],
             'file_dep': [buildDir+val+".o" for val in inits],
+            'task_dep': ['mkdirs'],
             'targets':  [buildDir+obj+".o"],
             'clean':    True
         }
