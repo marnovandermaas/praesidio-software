@@ -38,7 +38,7 @@ struct Message_t {
   enum MessageType_t type;
   enclave_id_t source;
   enclave_id_t destination;
-  unsigned long content; //Assuming that an int can fit an Address_t
+  uint64_t content; //Assuming that an int can fit an Address_t
 };
 
 #endif //ENCLAVE_LIBRARY_HEADER
