@@ -2,12 +2,7 @@
 #define PRAESIDIO_ENCLAVE_HEADER
 
 #include "unsignedinteger.h"
-#include "praesidio.h"
-//#include "../riscv/encoding.h"
-
-int give_read_permission(void* page_base, enclave_id_t receiver_id);
-
-volatile void* get_receive_mailbox_base_address(enclave_id_t sender_id);
+#include "praesidiosupervisor.h"
 
 //Writes a character to display.
 void output_char(char c);
