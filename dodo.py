@@ -101,8 +101,6 @@ def task_copy():
         'clean':    True
     }
 
-print(task_copy()['actions'])
-
 # def task_dump():
 #     return {
 #         'actions': [riscvPrefix+"objdump -D " + output + " > " + dumpFile],
