@@ -42,16 +42,17 @@ volatile void* get_receive_mailbox_base_address(enclave_id_t sender_id) {
 //Returns the starting index for the next message.
 int send_enclave_message(char *mailbox_address, char *message, int length) {
   int offset = 0;
+  int i;
 
   mailbox_address[offset] = BUSY_SIGNAL;
   offset += 1;
 
-  for(int i = 0; i < sizeof(length); i++) {
+  for(i = 0; i < sizeof(length); i++) {
     mailbox_address[offset+i] = ((length >> (8*(sizeof(length)-1-i))) & 0xFF);
   }
   offset += sizeof(length);
 
-  for(int i = 0; i < length; i++) {
+  for(i = 0; i < length; i++) {
     mailbox_address[offset+i] = message[i];
   }
   offset += length;
@@ -64,17 +65,18 @@ int send_enclave_message(char *mailbox_address, char *message, int length) {
 //Returns the starting index for the next message
 int get_enclave_message(volatile char *mailbox_address, char *read_buffer) {
   int offset = 0;
+  int i;
+  int length = 0;
 
   while (mailbox_address[offset] != READY_SIGNAL);
   offset += 1;
 
-  int length = 0;
-  for (int i = 0; i < sizeof(length); i++) {
+  for (i = 0; i < sizeof(length); i++) {
     length |= (((int) mailbox_address[offset+i]) << (8*(sizeof(length)-1-i)));
   }
   offset += sizeof(length);
 
-  for(int i = 0; i < length; i++) {
+  for(i = 0; i < length; i++) {
     read_buffer[i] = mailbox_address[offset+i];
   }
   offset += length;
