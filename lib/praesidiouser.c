@@ -1,5 +1,4 @@
 #include "praesidiouser.h"
-#include <linux/unistd.h>
 
 void* NW_create_send_mailbox(enclave_id_t receiver_id) {
   return syscall(__NR_create_send_mailbox, receiver_id);

@@ -1,12 +1,13 @@
 #ifndef PRAESIDIO_USER_HEADER
 #define PRAESIDIO_USER_HEADER
 
-#ifndef STANDALONE //This is necessary to build the linux driver.
-#include <linux/types.h>
-#else
+//#ifndef STANDALONE //This is necessary to build the linux driver.
+//#include <linux/types.h>
+//#else
 #include <stdint.h>
-#endif
+//#endif
 
+#include <asm-generic/unistd.h>
 #include "praesidio.h"
 
 #define __NR_create_enclave       292
