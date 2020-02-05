@@ -8,7 +8,7 @@ int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_
   if ((unsigned long) phys_page_base < DRAM_BASE) { //Check if pagebase is in DRAM
     return -1;
   }
-  if ((((unsigned long) phys_page_base >> PAGE_BIT_SHIFT) << PAGE_BIT_SHIFT) != (unsigned long) page_base) { //Check if lower bits are zero
+  if ((((unsigned long) phys_page_base >> PAGE_BIT_SHIFT) << PAGE_BIT_SHIFT) != (unsigned long) phys_page_base) { //Check if lower bits are zero
     return -2;
   }
   byte_base = (char *) virt_page_base;
