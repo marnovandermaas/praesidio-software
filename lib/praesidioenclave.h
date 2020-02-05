@@ -2,6 +2,7 @@
 #define PRAESIDIO_ENCLAVE_HEADER
 
 #include "unsignedinteger.h"
+#include "instructions.h"
 #include "praesidiosupervisor.h"
 
 //Writes a character to display.

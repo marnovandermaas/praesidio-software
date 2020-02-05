@@ -1,7 +1,5 @@
 #include "praesidioenclave.h"
-
-#define READY_SIGNAL (0xAB)
-#define BUSY_SIGNAL (0xBA) //Must be different from READY_SIGNAL
+#include "communication.h"
 
 //Sets read access to a page to an enclave
 int give_read_permission(void* page_base, enclave_id_t receiver_id) {

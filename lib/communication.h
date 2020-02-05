@@ -1,0 +1,7 @@
+#ifndef COMMUNICATION_HEADER
+#define COMMUNICATION_HEADER
+
+#define READY_SIGNAL (0xAB)
+#define BUSY_SIGNAL (0xBA) //Must be different from READY_SIGNAL
+
+#endif //COMMUNICATION_HEADER
