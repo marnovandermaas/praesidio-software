@@ -23,7 +23,7 @@ bareCompileFlags = includeCompilerFlags + "-nostdlib -mcmodel=medany "
 enclaveCompilerFlags = bareCompileFlags + "-T"+libDir+"enclavelink.ld "
 shimCompilerFlags = bareCompileFlags + "-T"+manageDir+"managementlink.ld "
 
-allObjects = [shim, instr, libDir+"praesidioenclave", libDir+"praesidiouser"]
+allObjects = [shim, instr, libDir+"praesidioenclave", libDir+"praesidiouser", libDir+"praesidio"]
 userExecs = []
 compileFlagOutDeps = []
 compileFlagOutDeps.append( (shimCompilerFlags, buildDir+shim+".out", [buildDir+val+".o" for val in [shim, managementInit, instr]]) )
@@ -34,8 +34,8 @@ for dir in benchmarkDirs:
     binaries.append(buildDir+outputFile)
     allObjects.append(outputFile)
     allObjects.append(userFile)
-    compileFlagOutDeps.append( (enclaveCompilerFlags, buildDir+outputFile+".out", [buildDir+val+".o" for val in [outputFile, enclaveInit, instr, libDir+"praesidioenclave"]]) )
-    compileFlagOutDeps.append( ("", buildDir+userFile+".out", [buildDir+val+".o" for val in [userFile, instr, libDir+"praesidiouser"]]) )
+    compileFlagOutDeps.append( (enclaveCompilerFlags, buildDir+outputFile+".out", [buildDir+val+".o" for val in [outputFile, enclaveInit, instr, libDir+"praesidioenclave", libDir+"praesidio"]]) )
+    compileFlagOutDeps.append( ("", buildDir+userFile+".out", [buildDir+val+".o" for val in [userFile, instr, libDir+"praesidiouser", libDir+"praesidio"]]) )
 
 def task_compile():
     for flags,out,deps in compileFlagOutDeps:
