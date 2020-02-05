@@ -11,7 +11,7 @@ int main(void)
   enclave_id_t myenclave;
   char name[INPUT_LEN] = "Marno";
   char *rx_address = NULL;
-  char *tx_address = NULL;
+  char *tx_address = malloc(1 << PAGE_BIT_SHIFT);
   char read_buffer[OUTPUT_LEN];
   char *enclave_memory_buffer = malloc(NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT);
 
