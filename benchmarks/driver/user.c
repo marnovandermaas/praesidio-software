@@ -32,15 +32,19 @@ int main(void) {
     printf("Error: failed create enclave ioctl.\n");
     return -1;
   }
+
   if (ioctl(enclave_descriptor, IOCTL_CREATE_SEND_MAILBOX) < 0) { //create send mailbox
     printf("Error: failed to create send mailbox because %s.\n", strerror(errno));
     return -1;
   }
-  void *ptr = mmap(NULL, 1 << PAGE_BIT_SHIFT, PROT_WRITE, MAP_SHARED, enclave_descriptor, 0);
-  if(ptr != NULL) {
-    printf("Got following string from kernel page: %s\n", (char *) ptr);
-  } else {
-    printf("ERROR: Pointer is null.\n");
+  void *tx_ptr = mmap(NULL, 1 << PAGE_BIT_SHIFT, PROT_WRITE, MAP_SHARED, enclave_descriptor, 0);
+
+
+  if (ioctl(enclave_descriptor, IOCTL_GET_RECEIVE_MAILBOX) < 0) { //create send mailbox
+    printf("Error: failed to get receive mailbox because %s.\n", strerror(errno));
+    return -1;
   }
+  void *rx_ptr = mmap(NULL, 1 << PAGE_BIT_SHIFT, PROT_WRITE, MAP_SHARED, enclave_descriptor, 0);
+
   return 0;
 }

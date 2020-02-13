@@ -8,10 +8,10 @@ int main(void)
   FILE *fp = fopen("enclave.bin", "r");
   int c;
   size_t i = 0;
-  enclave_id_t myenclave;
+  int enclave_descriptor;
   char name[INPUT_LEN] = "Marno";
   char *rx_address = NULL;
-  char *tx_address = malloc(1 << PAGE_BIT_SHIFT);
+  char *tx_address = NULL;
   char read_buffer[OUTPUT_LEN];
   char *enclave_memory_buffer = malloc(NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT);
 
@@ -28,15 +28,19 @@ int main(void)
     enclave_memory_buffer[i] = 0;
   }
 
-  myenclave = start_enclave((void*) enclave_memory_buffer);
-  printf("Got Enclave ID: %d\n", myenclave);
+  printf("location of fp 0x%016lx, rx_address 0x%016lx, enclave_memory_buffer 0x%016lx\n", &fp, &rx_address, &enclave_memory_buffer);
+
+  enclave_descriptor = start_enclave((void*) enclave_memory_buffer);
   fclose(fp);
 
-  if(NW_create_send_mailbox(tx_address, myenclave)) {
+  tx_address = NW_create_send_mailbox(enclave_descriptor);
+  if(tx_address == NULL) {
     printf("Error setting up send mailbox.\n");
   }
+  printf("Received tx addres: 0x%016lx\n", tx_address);
 
-  if(NW_get_receive_mailbox(rx_address, myenclave)) {
+  rx_address = NW_get_receive_mailbox(enclave_descriptor);
+  if(rx_address == NULL) {
     printf("Error getting receive mailbox.\n");
   }
 
