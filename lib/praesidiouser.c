@@ -1,11 +1,11 @@
 #include "praesidiouser.h"
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
+#include <sys/ioctl.h> //ioctl
+#include <sys/mman.h> //mmap
+#include <fcntl.h> //open
+#include <unistd.h> //close
+#include <errno.h> //errno
+#include <string.h> //strerror
+#include <stdio.h> //printf
 
 char* NW_create_send_mailbox(int enclave_descriptor) {
   if (ioctl(enclave_descriptor, IOCTL_CREATE_SEND_MAILBOX) < 0) {

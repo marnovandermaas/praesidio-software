@@ -36,13 +36,16 @@ int main(void)
   tx_address = NW_create_send_mailbox(enclave_descriptor);
   if(tx_address == NULL) {
     printf("Error setting up send mailbox.\n");
+    return -1;
   }
-  printf("Received tx addres: 0x%016lx\n", tx_address);
+  printf("Received tx address: 0x%016lx\n", tx_address);
 
   rx_address = NW_get_receive_mailbox(enclave_descriptor);
   if(rx_address == NULL) {
     printf("Error getting receive mailbox.\n");
+    return -1;
   }
+  printf("Received rx address: 0x%016lx\n", rx_address);
 
   for (int i = 0; i < NUMBER_OF_NAMES; i++) {
     tx_address += send_enclave_message(tx_address, name, INPUT_LEN);
@@ -50,4 +53,5 @@ int main(void)
     printf("Got: %s\n", read_buffer);
     name[0]+=1;
   }
+  return 0;
 }
