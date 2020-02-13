@@ -7,10 +7,6 @@
 #include <sys/mman.h>
 #include "praesidiouser.h"
 
-//TODO get these defines from driver header.
-#define IOCTL_CREATE_ENCLAVE _IO('a', 1)
-#define IOCTL_CREATE_SEND_MAILBOX _IO('a', 2)
-
 int main(void) {
   char device_name[128]; //TODO include 128 from driver header file.
   char device_path[128];

@@ -3,13 +3,12 @@
 
 #include <linux/types.h>
 
-#include <asm-generic/unistd.h>
 #include "praesidio.h"
 #include "instructions.h"
 
-#define __NR_create_enclave       292
-#define __NR_create_send_mailbox  293
-#define __NR_get_receive_mailbox  294
+#define IOCTL_CREATE_ENCLAVE _IO('a', 1)
+#define IOCTL_CREATE_SEND_MAILBOX _IO('a', 2)
+#define IOCTL_GET_RECEIVE_MAILBOX _IO('a', 3)
 
 long NW_create_send_mailbox(void *tx_address, enclave_id_t receiver_id);
 
