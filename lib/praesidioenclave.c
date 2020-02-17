@@ -3,7 +3,7 @@
 
 //Sets read access to a page to an enclave
 int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_t receiver_id) {
-  unsigned long page_number = ((unsigned long) phys_page_base | DRAM_BASE) >> PAGE_BIT_SHIFT;
+  unsigned long page_number = ((unsigned long) phys_page_base - DRAM_BASE)) >> PAGE_BIT_SHIFT;
   char *byte_base;
   if ((unsigned long) phys_page_base < DRAM_BASE) { //Check if pagebase is in DRAM
     return -1;
