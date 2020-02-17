@@ -87,7 +87,7 @@ def task_bin():
     for val in binaries:
         yield {
             'name':     val+".bin",
-            'actions':  [riscvPrefix+"objcopy -O binary " + val+".out " + val+".bin" for val in binaries],
+            'actions':  [riscvPrefix+"objcopy -O binary " + val+".out " + val+".bin"],
             'file_dep': [val+".out"],
             'targets':  [val+".bin"],
             'clean':    True
