@@ -20,7 +20,11 @@ char* NW_get_receive_mailbox(int enclave_descriptor) {
     printf("Error: failed to get receive mailbox because %s.\n", strerror(errno));
     return NULL;
   }
-  return (char *) mmap(NULL, 1 << PAGE_BIT_SHIFT, PROT_WRITE, MAP_SHARED, enclave_descriptor, 0);
+  void *mapped_address = mmap(NULL, 1 << PAGE_BIT_SHIFT, PROT_WRITE, MAP_SHARED, enclave_descriptor, 0);
+  if(mapped_address == MAP_FAILED) {
+    return NULL;
+  }
+  return (char *) mapped_address;
 }
 
 int start_enclave(void *enclave_memory) {
