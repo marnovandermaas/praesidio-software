@@ -26,6 +26,7 @@ int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_
 //Gets base address of mailbox page from which you can receive messages from the enclave specified in sender_id.
 volatile void* get_receive_mailbox_base_address(enclave_id_t sender_id) {
   volatile void *ret_val = 0;
+  int i;
   SET_ARGUMENT_ENCLAVE_IDENTIFIER(sender_id);
   do {
     asm volatile (
@@ -34,6 +35,7 @@ volatile void* get_receive_mailbox_base_address(enclave_id_t sender_id) {
       :
       :
     );
+    for(i=0; i<1000; i++);//delay a bit before asking again.
   } while (ret_val == 0);
   return ret_val;
 }
