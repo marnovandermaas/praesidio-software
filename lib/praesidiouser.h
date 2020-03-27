@@ -5,4 +5,6 @@
 #include <stdint.h>
 #include "praesidiodriver.h"
 
+void bare_metal_stats();
+
 #endif //PRAESIDIO_USER_HEADER

@@ -51,3 +51,13 @@ int start_enclave(void *enclave_memory) {
   }
   return enclave_descriptor;
 }
+
+void bare_metal_stats() {
+  int input = 1;
+  asm volatile (
+    "csrrw zero, 0x406, %0"
+    : //output
+    :  "r"(input) //input
+    : //clobbered
+  );
+}
