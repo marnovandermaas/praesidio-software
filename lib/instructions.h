@@ -3,12 +3,15 @@
 
 #include "enclaveLibrary.h"
 
-void switchEnclaveID(enclave_id_t id);
-//int* derivePhysicalCapability(struct PhysCap_t sourceCap);
+#define SWITCH_ENCLAVE_ID(id) ({asm volatile ( "csrrw zero, 0x40E, %0" : : "r"(id) : );})
+
 CoreID_t getCoreID(void);
+
 enclave_id_t getCurrentEnclaveID(void);
+
 //This is a helper instruction, but will be removed in final design
-void setArgumentEnclaveIdentifier(enclave_id_t id);
+#define SET_ARGUMENT_ENCLAVE_IDENTIFIER(id) ({asm volatile ("csrrw zero, 0x40D, %0" : : "r"(id) : );})
+
 void sendMessage(struct Message_t *txMsg);
 void receiveMessage(struct Message_t *rxMsg);
 

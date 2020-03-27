@@ -14,8 +14,8 @@ int main(void)
   char *tx_address = NULL;
   char read_buffer[OUTPUT_LEN];
   char *enclave_memory_buffer = malloc(NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT);
-
-  bare_metal_stats();
+  int label = 1;
+  OUTPUT_STATS(label);
   for(i = 0; i < (NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT); i++) {
     c = fgetc(fp);
     if( feof(fp) ) {

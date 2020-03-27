@@ -24,6 +24,6 @@ int main(char * output) {
     address += get_enclave_message(address, &read_buffer[3]);
     output_string(read_buffer);
     output += send_enclave_message(output, read_buffer, OUTPUT_LEN);
-    output_char('\n');
+    OUTPUT_CHAR('\n');
   }
 }

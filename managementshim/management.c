@@ -8,6 +8,7 @@ struct ManagementState_t state;
 
 enum boolean initialization_done = BOOL_FALSE;
 
+//TODO remove this because it is already defined in praesidioenclave.h
 //Writes a character to display.
 void output_char(char c) {
   asm volatile ( //This instruction writes a value to a CSR register. This is a custom register and I have modified Spike to print whatever character is written to this CSR. This is my way of printing without requiring the support of a kernel or the RISC-V front end server.
@@ -48,7 +49,7 @@ char putPageEntry(Address_t baseAddress, enclave_id_t id) {
   char *basePointer = (char *) baseAddress;
   //volatile char x = *basePointer; //This is not allowed if management enclave does not own the page.
   volatile char x = *((char *)(PAGE_DIRECTORY_BASE_ADDRESS + (baseAddress % PAGE_SIZE)));
-  setArgumentEnclaveIdentifier(id);
+  SET_ARGUMENT_ENCLAVE_IDENTIFIER(id);
   //Set the page to the specified enclave identifier.
   asm volatile (
     "csrrw zero, 0x40F, %0"
@@ -175,7 +176,7 @@ Address_t waitForEnclave() {
         }
       }
 
-      switchEnclaveID(message.content);
+      SWITCH_ENCLAVE_ID(message.content);
       entryPoint = enclaveData[i].codeEntryPoint;
       break;
     }
@@ -257,12 +258,12 @@ void managementRoutine() {
 
 Address_t initialize() {
   CoreID_t coreID = getCoreID();
-  switchEnclaveID(ENCLAVE_MANAGEMENT_ID - coreID);
+  SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
   flushRemappingTable();
   flushL1Cache();
   CoreID_t *enclaveCores = (CoreID_t *) 0x2000 /*ROM location of enclave 0's core ID*/;
   if(coreID == enclaveCores[1]) { //TODO fill state.enclaveCores
-    switchEnclaveID(ENCLAVE_MANAGEMENT_ID);
+    SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID);
 #ifdef PRAESIDIO_DEBUG
     output_string("management.c: In management enclave.\n");
 #endif

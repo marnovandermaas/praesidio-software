@@ -1,23 +1,6 @@
 #include "unsignedinteger.h"
 #include "instructions.h"
 
-void switchEnclaveID(enclave_id_t id) {
-  asm volatile (
-    "csrrw zero, 0x40E, %0"
-    : //output
-    : "r"(id) //input
-    : //clobbered
-  );
-}
-
-// int* derivePhysicalCapability(struct PhysCap_t sourceCap) {
-//   //TODO add inline instruction code here
-// }
-//
-// void startNormalWorld() {
-//   //TODO add inline instruction to signal the normal world to start here
-// }
-
 CoreID_t getCoreID() {
   CoreID_t id;
   asm volatile( //This function reads out a system register and put the ID of the core into the id variable
@@ -28,14 +11,6 @@ CoreID_t getCoreID() {
   );
   return id;
 }
-
-// struct PhysCap_t getRootCapability() {
-//   //TODO add inline instruction here
-// }
-//
-// void setManagementInterruptTimer(int milis) {
-//   //TODO add inline instruction to set the interupt time to milis amount of miliseconds.
-// }
 
 enclave_id_t getCurrentEnclaveID() {
   enclave_id_t retVal;
@@ -48,20 +23,10 @@ enclave_id_t getCurrentEnclaveID() {
   return retVal;
 }
 
-void setArgumentEnclaveIdentifier(enclave_id_t id) {
-  //Set the enclave ID argument for the next instruction.
-  asm volatile (
-    "csrrw zero, 0x40D, %0"
-    :
-    : "r"(id)
-    :
-  );
-}
-
 void sendMessage(struct Message_t *txMsg) {
   //TODO
   unsigned long contentAndType = 0;
-  setArgumentEnclaveIdentifier(txMsg->destination);
+  SET_ARGUMENT_ENCLAVE_IDENTIFIER(txMsg->destination);
   contentAndType += (txMsg->content << SIZE_OF_MESSAGE_TYPE);
   contentAndType += (txMsg->type & MSG_MASK); //The and is unecessary assuming everything goes well.
   asm volatile (
