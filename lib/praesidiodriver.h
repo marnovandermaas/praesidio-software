@@ -10,6 +10,8 @@
 #define IOCTL_CREATE_SEND_MAILBOX _IO('a', 2)
 #define IOCTL_GET_RECEIVE_MAILBOX _IO('a', 3)
 
+#define OUTPUT_STATS(input) ({asm volatile ("csrrw zero, 0x406, %0" : : "r"(input) : );})
+
 char* NW_create_send_mailbox(int enclave_descriptor);
 
 char* NW_get_receive_mailbox(int enclave_descriptor);

@@ -14,8 +14,7 @@ int main(void)
   char *tx_address = NULL;
   char read_buffer[OUTPUT_LEN];
   char *enclave_memory_buffer = malloc(NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT);
-  int label = 1;
-  OUTPUT_STATS(label);
+  int label = NUMBER_OF_NAMES;
   for(i = 0; i < (NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT); i++) {
     c = fgetc(fp);
     if( feof(fp) ) {
@@ -31,17 +30,24 @@ int main(void)
 
   printf("location of fp 0x%016lx, rx_address 0x%016lx, enclave_memory_buffer 0x%016lx\n", &fp, &rx_address, &enclave_memory_buffer);
 
+  OUTPUT_STATS(label);
   enclave_descriptor = start_enclave((void*) enclave_memory_buffer);
+  OUTPUT_STATS(label);
   fclose(fp);
 
+  OUTPUT_STATS(label);
   tx_address = NW_create_send_mailbox(enclave_descriptor);
+  OUTPUT_STATS(label);
+
   if(tx_address == NULL) {
     printf("Error setting up send mailbox.\n");
     return -1;
   }
   printf("Received tx address: 0x%016lx\n", tx_address);
 
+  OUTPUT_STATS(label);
   rx_address = NW_get_receive_mailbox(enclave_descriptor);
+  OUTPUT_STATS(label);
   if(rx_address == NULL) {
     printf("Error getting receive mailbox.\n");
     return -1;
@@ -49,8 +55,11 @@ int main(void)
   printf("Received rx address: 0x%016lx\n", rx_address);
 
   for (int i = 0; i < NUMBER_OF_NAMES; i++) {
+    OUTPUT_STATS(i);
     tx_address += send_enclave_message(tx_address, name, INPUT_LEN);
+    OUTPUT_STATS(i);
     rx_address += get_enclave_message(rx_address, read_buffer);
+    OUTPUT_STATS(i);
     printf("Got: %s\n", read_buffer);
     name[0]+=1;
   }
