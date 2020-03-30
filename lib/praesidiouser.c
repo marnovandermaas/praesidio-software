@@ -39,12 +39,18 @@ int start_enclave(void *enclave_memory) {
   close(file_descriptor);
   sprintf(device_path, "/dev/%s", device_name);
   int enclave_descriptor = -1;
+#ifdef PRAESIDIO_DEBUG
   printf("start_enclave: Opening enclave file %s", device_path);
+#endif
   while(enclave_descriptor == -1) {
     enclave_descriptor = open(device_path, O_RDWR);
+#ifdef PRAESIDIO_DEBUG
     printf(".");
+#endif
   }
+#ifdef PRAESIDIO_DEBUG
   printf("\n");
+#endif
   if (ioctl(enclave_descriptor, IOCTL_CREATE_ENCLAVE, enclave_memory) < 0) { //create enclave: add enclave memory in here.
     printf("Error: failed create enclave ioctl.\n");
     return -1;
