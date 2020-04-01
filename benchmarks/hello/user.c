@@ -48,6 +48,7 @@ int main(void)
   OUTPUT_STATS(label);
   rx_address = NW_get_receive_mailbox(enclave_descriptor);
   OUTPUT_STATS(label);
+
   if(rx_address == NULL) {
     printf("Error getting receive mailbox.\n");
     return -1;
@@ -57,6 +58,7 @@ int main(void)
   for (int i = 0; i < NUMBER_OF_NAMES; i++) {
     OUTPUT_STATS(i);
     tx_address += send_enclave_message(tx_address, name, INPUT_LEN);
+    OUTPUT_STATS(i);
     OUTPUT_STATS(i);
     rx_address += get_enclave_message(rx_address, read_buffer);
     OUTPUT_STATS(i);
