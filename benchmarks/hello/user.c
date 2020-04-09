@@ -5,7 +5,7 @@
 
 int main(void)
 {
-  FILE *fp = fopen("enclave.bin", "r");
+  FILE *fp = NULL;
   int c;
   size_t i = 0;
   int enclave_descriptor;
@@ -13,8 +13,12 @@ int main(void)
   char *rx_address = NULL;
   char *tx_address = NULL;
   char read_buffer[OUTPUT_LEN];
-  char *enclave_memory_buffer = malloc(NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT);
+  char *enclave_memory_buffer = NULL;
   int label = NUMBER_OF_NAMES;
+
+  OUTPUT_STATS(label);
+  fp = fopen("enclave.bin", "r");
+  enclave_memory_buffer = malloc(NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT);
   for(i = 0; i < (NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT); i++) {
     c = fgetc(fp);
     if( feof(fp) ) {
@@ -22,15 +26,14 @@ int main(void)
     }
     enclave_memory_buffer[i] = (char) c;
   }
-  printf("Copied %lu bytes to enclave memory buffer.\n", i);
   //Fill rest of memory with zeroes.
   for(; i < (NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT); i++) {
     enclave_memory_buffer[i] = 0;
   }
 
-  printf("location of fp 0x%016lx, rx_address 0x%016lx, enclave_memory_buffer 0x%016lx\n", &fp, &rx_address, &enclave_memory_buffer);
+  //printf("Copied %lu bytes to enclave memory buffer.\n", i);
+  //printf("location of fp 0x%016lx, rx_address 0x%016lx, enclave_memory_buffer 0x%016lx\n", &fp, &rx_address, &enclave_memory_buffer);
 
-  OUTPUT_STATS(label);
   enclave_descriptor = start_enclave((void*) enclave_memory_buffer);
   OUTPUT_STATS(label);
   fclose(fp);
