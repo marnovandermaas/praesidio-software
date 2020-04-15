@@ -30,24 +30,31 @@ char* NW_get_receive_mailbox(int enclave_descriptor) {
 int start_enclave(void *enclave_memory) {
   char device_name[128]; //TODO include 128 from driver header file.
   char device_path[128];
-  int file_descriptor = open("/dev/praesidio", O_RDONLY);
+  int label = 1000;
+  int file_descriptor = -1;
+  OUTPUT_STATS(label);
+  file_descriptor = open("/dev/praesidio", O_RDONLY);
   if(file_descriptor == -1) {
     printf("Failed to open main driver /dev/praesidiod because %s\n", strerror(errno));
     return errno;
   }
   ioctl(file_descriptor, 0, device_name);
   close(file_descriptor);
+  OUTPUT_STATS(label);
   sprintf(device_path, "/dev/%s", device_name);
   int enclave_descriptor = -1;
 #ifdef PRAESIDIO_DEBUG
   printf("start_enclave: Opening enclave file %s", device_path);
 #endif
+  OUTPUT_STATS(label);
   while(enclave_descriptor == -1) {
+    usleep(10);
     enclave_descriptor = open(device_path, O_RDWR);
 #ifdef PRAESIDIO_DEBUG
     printf(".");
 #endif
   }
+  OUTPUT_STATS(label);
 #ifdef PRAESIDIO_DEBUG
   printf("\n");
 #endif
