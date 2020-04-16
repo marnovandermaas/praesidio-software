@@ -37,29 +37,27 @@ int main(void)
   //printf("Copied %lu bytes to enclave memory buffer.\n", i);
   //printf("location of fp 0x%016lx, rx_address 0x%016lx, enclave_memory_buffer 0x%016lx\n", &fp, &rx_address, &enclave_memory_buffer);
   OUTPUT_STATS(label);
+
   OUTPUT_STATS(label);
   enclave_descriptor = start_enclave((void*) enclave_memory_buffer);
   OUTPUT_STATS(label);
-  OUTPUT_STATS(label2);
 
   OUTPUT_STATS(label);
   tx_address = NW_create_send_mailbox(enclave_descriptor);
-  OUTPUT_STATS(label);
-
   if(tx_address == NULL) {
     printf("Error setting up send mailbox.\n");
     return -1;
   }
-  printf("Received tx address: 0x%016lx\n", tx_address);
 
-  OUTPUT_STATS(label);
   rx_address = NW_get_receive_mailbox(enclave_descriptor);
-  OUTPUT_STATS(label);
-
   if(rx_address == NULL) {
     printf("Error getting receive mailbox.\n");
     return -1;
   }
+  OUTPUT_STATS(label);
+  OUTPUT_STATS(label2);
+
+  printf("Received tx address: 0x%016lx\n", tx_address);
   printf("Received rx address: 0x%016lx\n", rx_address);
 
   for (int i = 0; i < NUMBER_OF_NAMES; i++) {
