@@ -21,9 +21,9 @@ int main(char * output) {
   address = get_receive_mailbox_base_address(ENCLAVE_DEFAULT_ID);
 
   for (int i = 0; i < NUMBER_OF_NAMES; i++) {
+    output += send_enclave_message(output, read_buffer, OUTPUT_LEN);
     address += get_enclave_message(address, &read_buffer[3]);
     output_string(read_buffer);
-    output += send_enclave_message(output, read_buffer, OUTPUT_LEN);
     OUTPUT_CHAR('\n');
   }
 }
