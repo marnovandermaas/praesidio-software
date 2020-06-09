@@ -1,6 +1,8 @@
 #ifndef ENCLAVE_LIBRARY_HEADER
 #define ENCLAVE_LIBRARY_HEADER
 
+#include "praesidiopage.h"
+
 #define ENCLAVE_MANAGEMENT_ID (0xFFFFFFFFFFFFFFFE)
 #define ENCLAVE_DEFAULT_ID    (0)
 #define ENCLAVE_INVALID_ID    (0xFFFFFFFFFFFFFFFF)
@@ -12,8 +14,6 @@
 
 typedef uint64_t enclave_id_t;
 typedef uint32_t CoreID_t;
-
-#define PAGE_BIT_SHIFT (12)
 
 enum MessageType_t {
   MSG_CREATE_ENCLAVE    = 0x0,

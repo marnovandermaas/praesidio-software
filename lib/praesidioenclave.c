@@ -12,7 +12,7 @@ int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_
     return -2;
   }
   byte_base = (char *) virt_page_base;
-  byte_base[0] = BUSY_SIGNAL;
+  byte_base[0] = BUSY_BYTE;
   SET_ARGUMENT_ENCLAVE_IDENTIFIER(receiver_id);
   asm volatile (
     "csrrw zero, 0x40A, %0"

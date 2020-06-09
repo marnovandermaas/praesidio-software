@@ -1,6 +1,8 @@
 #ifndef PRAESIDIO_HEADER
 #define PRAESIDIO_HEADER
 
+#include "praesidiopage.h"
+
 #define NUMBER_OF_ENCLAVE_PAGES       (2)
 #define NUMBER_OF_STACK_PAGES         (4)
 #define NUMBER_OF_COMMUNICATION_PAGES (2)
