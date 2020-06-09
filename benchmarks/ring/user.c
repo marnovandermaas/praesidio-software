@@ -49,24 +49,31 @@ int main(void)
     return -1;
   }
 
-  for (int packet_size = START_PACKET_SIZE; packet_size < (START_PACKET_SIZE << NUMBER_OF_SHIFTS); packet_size <<= 1) {
+  for (int packet_size = START_PACKET_SIZE; packet_size > 0; packet_size >>= 1) {
+    printf("Packet size 0x%08x ", packet_size);
     for (int i = 0; i < packet_size-1; i++) {
       send_buffer[i] = fill_char;
     }
     send_buffer[packet_size-1] = '\0';
     fill_char ^= 1;
 
-    for (int i = 0; i < NUMBER_OF_REPS; i++) {
-      OUTPUT_STATS(i);
+    //Ignoring first packet sent by them.
+    tx_address += send_enclave_message(tx_address, send_buffer, packet_size);
+    rx_address += get_enclave_message(rx_address, read_buffer);
+
+    for (int i = 1; i < NUMBER_OF_REPS; i++) {
+      OUTPUT_STATS(packet_size);
       tmp_length = send_enclave_message(tx_address, send_buffer, packet_size);
-      OUTPUT_STATS(i);
+      OUTPUT_STATS(packet_size);
       tx_address += tmp_length;
-      OUTPUT_STATS(i);
+      OUTPUT_STATS(packet_size);
       tmp_length = get_enclave_message(rx_address, read_buffer);
-      OUTPUT_STATS(i);
+      OUTPUT_STATS(packet_size);
       rx_address += tmp_length;
-      printf("Got: %s\n", read_buffer);
+      //printf("Got: %s\n", read_buffer);
+      //printf("%d ", i);
     }
+    printf("\n");
   }
   return 0;
 }
