@@ -19,8 +19,6 @@ int main(char * output) {
     for (int i = 0; i < NUMBER_OF_REPS; i++) {
       tmp_length = get_enclave_message(address, output+LENGTH_SIZE);
       address += tmp_length;
-      output_string(output + LENGTH_SIZE);
-      OUTPUT_CHAR('\n');
       tmp_length = send_enclave_message(output, output+LENGTH_SIZE, packet_size);
       output += tmp_length;
     }
