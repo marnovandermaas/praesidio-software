@@ -16,6 +16,7 @@ int main(void)
   char *enclave_memory_buffer = NULL;
   int label = NUMBER_OF_NAMES;
   int label2 = label + 1;
+  int tmp_length = 0;
 
   OUTPUT_STATS(label2);
   OUTPUT_STATS(label);
@@ -57,16 +58,27 @@ int main(void)
   OUTPUT_STATS(label);
   OUTPUT_STATS(label2);
 
-  printf("Received tx address: 0x%016lx\n", tx_address);
-  printf("Received rx address: 0x%016lx\n", rx_address);
+  //printf("Received tx address: 0x%016lx\n", tx_address);
+  //printf("Received rx address: 0x%016lx\n", rx_address);
 
   for (int i = 0; i < NUMBER_OF_NAMES; i++) {
     OUTPUT_STATS(i);
-    tx_address += send_enclave_message(tx_address, name, INPUT_LEN);
+    tmp_length = send_enclave_message(tx_address, name, INPUT_LEN);
     OUTPUT_STATS(i);
+    /*for(int j = 0; j < 10; j++) {
+      printf("0x%x ", tx_address[j]);
+    }
+    printf("send length: %d %s\n", tmp_length, name);*/
+    tx_address += tmp_length;
     OUTPUT_STATS(i);
-    rx_address += get_enclave_message(rx_address, read_buffer);
+    tmp_length = get_enclave_message(rx_address, read_buffer);
     OUTPUT_STATS(i);
+
+    /*for(int j = 0; j < 10; j++) {
+      printf("0x%x ", rx_address[j]);
+    }
+    printf("get length: %d\n", tmp_length);*/
+    rx_address += tmp_length;
     printf("Got: %s\n", read_buffer);
     name[0]+=1;
   }
