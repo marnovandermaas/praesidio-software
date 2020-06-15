@@ -10,7 +10,7 @@ int main(void)
   size_t i = 0;
   int enclave_descriptor;
   char name[INPUT_LEN] = "Marno";
-  char *rx_address = NULL;
+  volatile char *rx_address = NULL;
   char *tx_address = NULL;
   char read_buffer[OUTPUT_LEN];
   char *enclave_memory_buffer = NULL;

@@ -9,7 +9,7 @@ int main(void)
   int c;
   size_t i = 0;
   int enclave_descriptor;
-  char *rx_address = NULL;
+  volatile char *rx_address = NULL;
   char *tx_address = NULL;
   char *enclave_memory_buffer = NULL;
   char *read_buffer = NULL;
@@ -49,7 +49,8 @@ int main(void)
     return -1;
   }
 
-  for (int packet_size = START_PACKET_SIZE; packet_size > 0; packet_size >>= 1) {
+  volatile char read_aggregator = 0xFF;
+  for (int packet_size = PACKET_START; packet_size <= PACKET_MAX; packet_size += PACKET_INCREMENT) {
     printf("Packet size 0x%08x ", packet_size);
     for (int i = 0; i < packet_size-1; i++) {
       send_buffer[i] = fill_char;
@@ -70,8 +71,12 @@ int main(void)
       tmp_length = get_enclave_message(rx_address, read_buffer);
       OUTPUT_STATS(packet_size);
       rx_address += tmp_length;
+      for(int j = 0; ;j++) {
+        if(read_buffer[j] == '\0') break;
+        read_aggregator &= read_buffer[j];
+      }
       //printf("Got: %s\n", read_buffer);
-      //printf("%d ", i);
+      printf("(%d,%c) ", i, read_aggregator);
     }
     printf("\n");
   }
