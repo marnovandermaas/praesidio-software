@@ -5,6 +5,6 @@
 #include "praesidiopage.h"
 
 #define ACK_LENGTH  (2)
-#define PAGE_NUMBER_OF_REPEATS (8)
+#define PAGE_NUMBER_OF_REPEATS (32)
 
 #endif
