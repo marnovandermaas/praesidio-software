@@ -9,21 +9,27 @@ struct ManagementState_t state;
 enum boolean initialization_done = BOOL_FALSE;
 
 //TODO remove this because it is already defined in praesidioenclave.h
-//Writes a character to display.
-void output_char(char c) {
-  asm volatile ( //This instruction writes a value to a CSR register. This is a custom register and I have modified Spike to print whatever character is written to this CSR. This is my way of printing without requiring the support of a kernel or the RISC-V front end server.
-    "csrrw zero, 0x404, %0" //CSRRW rd, csr, rs1
-    : //output operands
-    : "r"(c) //input operands
-    : //clobbered registers
-  );
+//Outputs a hexadecimal value
+void output_hexbyte(unsigned char c) {
+  unsigned char upper = (c >> 4);
+  unsigned char lower = (c & 0xF);
+  if(upper < 10) {
+    OUTPUT_CHAR(upper + '0');
+  } else {
+    OUTPUT_CHAR(upper + 'A' - 10);
+  }
+  if(lower < 10) {
+    OUTPUT_CHAR(lower + '0');
+  } else {
+    OUTPUT_CHAR(lower + 'A' - 10);
+  }
 }
 
 //Calls output_char in a loop.
 void output_string(char *s) {
   int i = 0;
   while(s[i] != '\0') {
-    output_char(s[i]);
+    OUTPUT_CHAR(s[i]);
     i++;
   }
 }
@@ -88,10 +94,10 @@ int createEnclave() {
   }
 #ifdef PRAESIDIO_DEBUG
   output_string("creating enclave in slot: ");
-  output_char(i + '0');
+  OUTPUT_CHAR(i + '0');
   output_string(" with ID: ");
-  output_char(state.nextEnclaveID + '0');
-  output_char('\n');
+  OUTPUT_CHAR(state.nextEnclaveID + '0');
+  OUTPUT_CHAR('\n');
 #endif
   enclaveData[i].eID = state.nextEnclaveID;
   state.nextEnclaveID += 1;
@@ -192,7 +198,6 @@ void managementRoutine() {
   int index;
   saveCurrentContext(&savedContext);
   enclave_id_t savedEnclaveID = getCurrentEnclaveID();
-  //char prntString[5] = "t  \n";
 
   struct Message_t message;
   receiveMessage(&message);
@@ -205,8 +210,12 @@ void managementRoutine() {
 
   if(message.source == ENCLAVE_DEFAULT_ID &&
       message.destination == ENCLAVE_MANAGEMENT_ID) {
-    //prntString[2] = ((char) message.type) + '0';
-    //output_string(prntString);
+#ifdef PRAESIDIO_DEBUG
+    output_hexbyte(message.type);
+    OUTPUT_CHAR(' ');
+    output_hexbyte(message.source);
+    OUTPUT_CHAR('\n');
+#endif
     switch(message.type) {
       case MSG_CREATE_ENCLAVE:
 #ifdef PRAESIDIO_DEBUG
@@ -245,8 +254,8 @@ void managementRoutine() {
 #ifdef PRAESIDIO_DEBUG
         output_string("Received set argument message.\n");
         output_string("internalArgument set to: ");
-        output_char(message.content + '0');
-        output_char('\n');
+        OUTPUT_CHAR(message.content + '0');
+        OUTPUT_CHAR('\n');
 #endif
         internalArgument = message.content;
         break;

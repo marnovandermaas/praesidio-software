@@ -3,6 +3,7 @@
 
 #include "unsignedinteger.h"
 #include "enclaveLibrary.h"
+#include "praesidiooutput.h"
 
 //Definition of the base addresses of the three trusted pages:
 #define MANAGEMENT_CODE_BASE_ADDRESS ((Address_t) MANAGEMENT_ENCLAVE_BASE)
