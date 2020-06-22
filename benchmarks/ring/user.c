@@ -68,12 +68,13 @@ int main(void)
       OUTPUT_STATS(packet_size);
       rx_address += tmp_length;
 
-      read_aggregator = 0xFF;
+      read_aggregator = 0x00;
       for(int j = 0; j < tmp_length - LENGTH_SIZE; j++) {
-        read_aggregator &= read_buffer[j];
+        //printf("%c", read_buffer[j]);
+        read_aggregator |= read_buffer[j];
       }
-      //printf("Got: %s\n", read_buffer);
-      printf("(%d,0x%x) ", i, read_aggregator);
+      printf("(%d,%c) ", i, read_aggregator);
+      //printf("\n");
     }
     printf("\n");
   }
