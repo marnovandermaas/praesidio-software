@@ -8,10 +8,10 @@ int main(char * output) {
   char start_buffer[2];
   start_buffer[0] = 'S';
   start_buffer[1] = '\0';
-  
-  if(give_read_permission(output, output, ENCLAVE_DEFAULT_ID)) { }
 
   address = get_receive_mailbox_base_address(ENCLAVE_DEFAULT_ID);
+
+  if(give_read_permission(output, output, ENCLAVE_DEFAULT_ID)) { }
 
   output +=send_enclave_message(output, start_buffer, 2);
 

@@ -5,6 +5,7 @@
 int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_t receiver_id) {
   unsigned long page_number = ((unsigned long) phys_page_base - DRAM_BASE) >> PAGE_BIT_SHIFT;
   char *byte_base;
+  struct Message_t message;
   if ((unsigned long) phys_page_base < DRAM_BASE) { //Check if pagebase is in DRAM
     return -1;
   }
@@ -20,6 +21,11 @@ int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_
     : "r"(page_number)
     :
   );
+  message.type = MSG_SEND_MAILBOX;
+  message.content = page_number;
+  message.source = getCurrentEnclaveID();
+  message.destination = receiver_id;
+  sendMessage(&message);
   return 0;
 }
 
@@ -27,15 +33,15 @@ int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_
 volatile void* get_receive_mailbox_base_address(enclave_id_t sender_id) {
   volatile void *ret_val = 0;
   int i;
+  enclave_id_t this_id = getCurrentEnclaveID();
+  struct Message_t message;
   SET_ARGUMENT_ENCLAVE_IDENTIFIER(sender_id);
   do {
-    asm volatile (
-      "csrrs %0, 0x40B, zero"
-      : "=r"(ret_val)
-      :
-      :
-    );
-    for(i=0; i<1000; i++);//delay a bit before asking again.
+    receiveMessage(&message);
+    if(message.type == MSG_SEND_MAILBOX && message.destination == this_id) {
+        ret_val = (volatile void*) (message.content << PAGE_BIT_SHIFT) + DRAM_BASE;
+    }
+    for(i=0; i<100; i++);//delay a bit before asking again.
   } while (ret_val == 0);
   return ret_val;
 }

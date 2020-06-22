@@ -13,13 +13,13 @@ int main(char * output) {
   read_buffer[3] = '\n';
   read_buffer[4] = '\0';
 
+  address = get_receive_mailbox_base_address(ENCLAVE_DEFAULT_ID);
+
   if(give_read_permission(output, output, ENCLAVE_DEFAULT_ID)) {
     read_buffer[0] = 'N';
     read_buffer[1] = 'o';
   }
   output_string(read_buffer);
-
-  address = get_receive_mailbox_base_address(ENCLAVE_DEFAULT_ID);
 
   for (int i = 0; i < NUMBER_OF_NAMES; i++) {
     tmp_length = send_enclave_message(output, read_buffer, OUTPUT_LEN);

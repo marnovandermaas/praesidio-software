@@ -24,6 +24,7 @@ enum MessageType_t {
   MSG_SWITCH_ENCLAVE    = 0x5,
   MSG_INTER_ENCLAVE     = 0x6,
   MSG_SET_ARGUMENT      = 0x7,
+  MSG_SEND_MAILBOX      = 0x8,
   MSG_MASK              = 0xF,
 };
 
