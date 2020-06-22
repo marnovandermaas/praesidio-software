@@ -62,15 +62,25 @@ int main(void)
       OUTPUT_STATS(packet_size);
       tmp_length = send_enclave_message(tx_address, send_buffer, packet_size);
       OUTPUT_STATS(packet_size);
+      if(tmp_length == 0) {
+        printf("Error send failed.\n");
+        return -1;
+      }
       tx_address += tmp_length;
       OUTPUT_STATS(packet_size);
       tmp_length = get_enclave_message(rx_address, read_buffer);
       OUTPUT_STATS(packet_size);
+      if(tmp_length == 0) {
+        printf("Error receive failed.\n");
+        return -2;
+      }
       rx_address += tmp_length;
 
       read_aggregator = 0x00;
       for(int j = 0; j < tmp_length - LENGTH_SIZE; j++) {
-        //printf("%c", read_buffer[j]);
+        if(read_buffer[j] < 'A' || read_buffer[j] > 'Z') {
+            printf("wrong char: %c\n", read_buffer[j]);
+        }
         read_aggregator |= read_buffer[j];
       }
       printf("(%d,%c) ", i, read_aggregator);
