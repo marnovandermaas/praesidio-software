@@ -10,7 +10,6 @@ int main(void)
     size_t i = 0, j;
     int enclave_descriptor;
     char *tx_address = NULL;
-    long long *first_long_address = NULL;
     volatile char *rx_address = NULL;
     long long *long_address = NULL;
     char *enclave_memory_buffer = NULL;
@@ -45,13 +44,8 @@ int main(void)
         }
         long_address = (long long *) tx_address;
         for(i = 0; i < (1 << PAGE_BIT_SHIFT) / sizeof(long long); i++) {
-            long_address[i] = i;
+            long_address[i] = i + j;
         }
-        if(j == 0) {//TODO remove this after actual page donation is implemented.
-            first_long_address = long_address;
-        }
-
-        first_long_address[0] = j;
 
         if(j == 0) {
             rx_address = NW_get_receive_mailbox(enclave_descriptor);
@@ -64,7 +58,7 @@ int main(void)
         rx_address += get_enclave_message(rx_address, read_buffer);
         OUTPUT_STATS(label);
 
-        printf("%s %lld\n", read_buffer, first_long_address[0]);
+        printf("%s %lu\n", read_buffer, j);
     }
 
     return 0;
