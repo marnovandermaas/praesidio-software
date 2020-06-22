@@ -49,20 +49,16 @@ int main(void)
     return -1;
   }
 
-  volatile char read_aggregator = 0xFF;
+  volatile char read_aggregator;
   for (int packet_size = PACKET_START; packet_size <= PACKET_MAX; packet_size += PACKET_INCREMENT) {
     printf("Packet size 0x%08x ", packet_size);
     for (int i = 0; i < packet_size-1; i++) {
       send_buffer[i] = fill_char;
     }
-    send_buffer[packet_size-1] = '\0';
-    fill_char ^= 1;
+    fill_char += 1;
+    if(fill_char == 'Z') fill_char = 'A';
 
-    //Ignoring first packet sent by them.
-    tx_address += send_enclave_message(tx_address, send_buffer, packet_size);
-    rx_address += get_enclave_message(rx_address, read_buffer);
-
-    for (int i = 1; i < NUMBER_OF_REPS; i++) {
+    for (int i = 0; i < NUMBER_OF_REPS; i++) {
       OUTPUT_STATS(packet_size);
       tmp_length = send_enclave_message(tx_address, send_buffer, packet_size);
       OUTPUT_STATS(packet_size);
@@ -71,12 +67,13 @@ int main(void)
       tmp_length = get_enclave_message(rx_address, read_buffer);
       OUTPUT_STATS(packet_size);
       rx_address += tmp_length;
-      for(int j = 0; ;j++) {
-        if(read_buffer[j] == '\0') break;
+
+      read_aggregator = 0xFF;
+      for(int j = 0; j < tmp_length;j++) {
         read_aggregator &= read_buffer[j];
       }
       //printf("Got: %s\n", read_buffer);
-      printf("(%d,%c) ", i, read_aggregator);
+      printf("(%d,0x%x) ", i, read_aggregator);
     }
     printf("\n");
   }
