@@ -69,7 +69,7 @@ int main(void)
       rx_address += tmp_length;
 
       read_aggregator = 0xFF;
-      for(int j = 0; j < tmp_length;j++) {
+      for(int j = 0; j < tmp_length - LENGTH_SIZE; j++) {
         read_aggregator &= read_buffer[j];
       }
       //printf("Got: %s\n", read_buffer);
