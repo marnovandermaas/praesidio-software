@@ -1,6 +1,5 @@
 #include "management.h"
 #include "instructions.h"
-#include <stdio.h>
 
 #define PAGE_SIZE (1 << PAGE_BIT_SHIFT) //2^12 = 4096 number of Bytes
 
