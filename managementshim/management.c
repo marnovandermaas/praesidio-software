@@ -268,6 +268,7 @@ void managementRoutine() {
 Address_t initialize() {
   CoreID_t coreID = getCoreID();
   SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
+  //TODO make a hash of management pages
   flushRemappingTable();
   flushL1Cache();
   CoreID_t *enclaveCores = (CoreID_t *) 0x2000 /*ROM location of enclave 0's core ID*/;

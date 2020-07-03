@@ -1,0 +1,3 @@
+[submodule "usecases/fido"]
+	path = usecases/fido
+	url = git@github.com:marnovandermaas/praesidio-fido.git
