@@ -21,7 +21,7 @@ compiler = riscvPrefix+"gcc "
 includeCompilerFlags = "-I"+libDir+" -I"+manageDir+ " "
 bareCompileFlags = includeCompilerFlags + "-nostdlib -mcmodel=medany "
 enclaveCompilerFlags = bareCompileFlags + "-T"+libDir+"enclavelink.ld "
-shimCompilerFlags = bareCompileFlags + "-T"+manageDir+"managementlink.ld "
+shimCompilerFlags = bareCompileFlags + "-T"+manageDir+"managementlink.ld -Os"
 
 allObjects = [shim, instr, libDir+"praesidioenclave", libDir+"praesidiouser", libDir+"praesidio"]
 userExecs = []
