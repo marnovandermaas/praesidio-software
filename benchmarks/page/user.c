@@ -21,11 +21,11 @@ int main(void)
     fp = fopen("enclave.bin", "r");
     enclave_memory_buffer = malloc(NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT);
     for(i = 0; i < (NUMBER_OF_ENCLAVE_PAGES << PAGE_BIT_SHIFT); i++) {
-    c = fgetc(fp);
-    if( feof(fp) ) {
-        break ;
-    }
-    enclave_memory_buffer[i] = (char) c;
+        c = fgetc(fp);
+        if( feof(fp) ) {
+            break ;
+        }
+        enclave_memory_buffer[i] = (char) c;
     }
     fclose(fp);
     //Fill rest of memory with zeroes.
