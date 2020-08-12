@@ -1,5 +1,16 @@
 import os
 
+from doit.reporter import ConsoleReporter
+
+class MyReporter(ConsoleReporter):
+    def execute_task(self, task):
+        self.outstream.write('%s:\n' % task.name)
+        for action in task.actions:
+            self.outstream.write('\t%s\n' % action)
+
+DOIT_CONFIG = {'reporter': MyReporter,
+               'verbosity': 2}
+
 buildDir = "build/"
 workDir = "../work/"
 manageDir = "managementshim/"
