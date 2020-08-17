@@ -128,15 +128,15 @@ enum boolean donatePage(enclave_id_t recipient, Address_t page_base) {
   switch(enclaveData[i].state) {
     case STATE_CREATED:
       enclaveData[i].codeEntryPoint = page_base; //This assumes the first page that is given to an enclave is also the code entry point.
-      enclaveData[i].state = STATE_RECEIVINGPAGES;
+      enclaveData[i].state = STATE_BUILDING;
       putPageEntry(page_base, recipient);
       break;
-    case STATE_RECEIVINGPAGES:
+    case STATE_BUILDING:
       putPageEntry(page_base, recipient);
       break;
-    case STATE_FINALIZED:
+    default:
 #ifdef PRAESIDIO_DEBUG
-      output_string("Donate Page: enclave already running ERROR!\n");
+      output_string("Donate Page: ERROR, enclave cannot receive pages in its current state!\n");
 #endif
       return BOOL_FALSE;
   }
@@ -183,6 +183,7 @@ Address_t waitForEnclave() {
 
       SWITCH_ENCLAVE_ID(message.content);
       entryPoint = enclaveData[i].codeEntryPoint;
+      enclaveData[i].state = STATE_LIVE;
       break;
     }
   }
@@ -260,7 +261,6 @@ void managementRoutine() {
     }
     sendMessage(&response);
   }
-  //TODO inter enclave messages
 }
 
 Address_t initialize() {
@@ -300,6 +300,7 @@ Address_t initialize() {
       //wait for 1000 milliseconds
     }
   }
+  //TODO check whether this core has returned from an enclave and if so send the main management core a message to set the enclave data state to empty.
   //setManagementInterruptTimer(1000); //Time in milliseconds
   return waitForEnclave();
 }

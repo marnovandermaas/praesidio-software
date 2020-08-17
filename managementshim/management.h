@@ -32,9 +32,11 @@ struct PhysCap_t {
 };
 
 enum EnclaveState_t {
-  STATE_CREATED         = 0x0,
-  STATE_RECEIVINGPAGES  = 0x1,
-  STATE_FINALIZED       = 0x2,
+  STATE_EMPTY           = 0x0,
+  STATE_CREATED         = 0x1,
+  STATE_BUILDING        = 0x2,
+  STATE_LIVE            = 0x3,
+  STATE_ERROR           = 0x4,
 };
 
 struct EnclaveData_t {
