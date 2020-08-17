@@ -209,10 +209,10 @@ void managementRoutine() {
   if(message.source == ENCLAVE_DEFAULT_ID &&
       message.destination == ENCLAVE_MANAGEMENT_ID) {
 #ifdef PRAESIDIO_DEBUG
-    output_hexbyte(message.type);
-    OUTPUT_CHAR(' ');
-    output_hexbyte(message.source);
-    OUTPUT_CHAR('\n');
+      output_hexbyte(message.type);
+      OUTPUT_CHAR(' ');
+      output_hexbyte(message.source);
+      OUTPUT_CHAR('\n');
 #endif
     switch(message.type) {
       case MSG_CREATE_ENCLAVE:
