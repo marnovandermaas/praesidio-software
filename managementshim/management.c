@@ -189,14 +189,13 @@ Address_t waitForEnclave() {
   return entryPoint;
 }
 
-enclave_id_t internalArgument = ENCLAVE_INVALID_ID;
-CoreID_t nextIdleCore = 2;
-
 void managementRoutine() {
   struct Context_t savedContext;
   int index;
   saveCurrentContext(&savedContext);
   enclave_id_t savedEnclaveID = getCurrentEnclaveID();
+  static enclave_id_t internalArgument = ENCLAVE_INVALID_ID;
+  static CoreID_t nextIdleCore = 2;
 
   struct Message_t message;
   receiveMessage(&message);
@@ -247,7 +246,7 @@ void managementRoutine() {
 #ifdef PRAESIDIO_DEBUG
         output_string("Received switch enclave message.\n");
 #endif
-        switchEnclave(nextIdleCore++, message.content);
+        switchEnclave(nextIdleCore, message.content);//TODO actually keep track of which cores are available.
         break;
       case MSG_SET_ARGUMENT: //TODO include this in the donate page message.
 #ifdef PRAESIDIO_DEBUG
