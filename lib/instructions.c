@@ -23,8 +23,18 @@ enclave_id_t getCurrentEnclaveID() {
   return retVal;
 }
 
+uint64_t getCycleCount() {
+    uint64_t retVal;
+    asm volatile (
+      "rdcycle %0"
+      : "=r"(retVal) //output
+      : //input
+      : //clobbered
+    );
+    return retVal;
+}
+
 void sendMessage(struct Message_t *txMsg) {
-  //TODO
   unsigned long contentAndType = 0;
   SET_ARGUMENT_ENCLAVE_IDENTIFIER(txMsg->destination);
   contentAndType += (txMsg->content << SIZE_OF_MESSAGE_TYPE);

@@ -15,4 +15,6 @@ enclave_id_t getCurrentEnclaveID(void);
 void sendMessage(struct Message_t *txMsg);
 void receiveMessage(struct Message_t *rxMsg);
 
+uint64_t getCycleCount(void);
+
 #endif //PRAESIDIO_INSTRUCTIONS_H
