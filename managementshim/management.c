@@ -7,6 +7,21 @@ struct ManagementState_t state;
 
 enum boolean initialization_done = BOOL_FALSE;
 
+struct EnclaveData_t * getEnclaveDataPointer(enclave_id_t id) {
+    //TODO add support for more enclaves than fit on one page.
+    struct EnclaveData_t *enclaveData = (struct EnclaveData_t *) ENCLAVE_DATA_BASE_ADDRESS;
+    int i;
+    for(i = 0; ; i++) {
+      if(i >= 2*PAGE_SIZE / sizeof(struct EnclaveData_t)) {
+        return 0;
+      }
+      if(enclaveData[i].eID == id) {
+        return &enclaveData[i];
+      }
+    }
+}
+
+#ifdef PRAESIDIO_DEBUG
 //TODO remove this because it is already defined in praesidioenclave.h
 //Outputs a hexadecimal value
 void output_hexbyte(unsigned char c) {
@@ -32,6 +47,7 @@ void output_string(char *s) {
     i++;
   }
 }
+#endif //PRAESIDIO_DEBUG
 
 void flushRemappingTable() {
   //TODO flush all entries in this core's remapping table
@@ -105,30 +121,17 @@ int createEnclave() {
 }
 
 enum boolean donatePage(enclave_id_t recipient, Address_t page_base) {
-  //TODO look for enclave data in enclave data structure.
-  struct EnclaveData_t *enclaveData = (struct EnclaveData_t *) ENCLAVE_DATA_BASE_ADDRESS;
-  int i;
-  for(i = 0; ; i++) {
-    if(i >= 2*PAGE_SIZE / sizeof(struct EnclaveData_t)) {
-#ifdef PRAESIDIO_DEBUG
-      output_string("Donate Page: enclaveID ERROR!\n");
-#endif
-      return BOOL_FALSE;
-    }
-    if(enclaveData[i].eID == recipient) {
-      break;
-    }
-  }
+  struct EnclaveData_t * thisData = getEnclaveDataPointer(recipient);
   if(page_base & (PAGE_SIZE-1)) {
 #ifdef PRAESIDIO_DEBUG
     output_string("Donate Page: address not at base of page ERROR!\n");
 #endif
     return BOOL_FALSE;
   }
-  switch(enclaveData[i].state) {
+  switch(thisData->state) {
     case STATE_CREATED:
-      enclaveData[i].codeEntryPoint = page_base; //This assumes the first page that is given to an enclave is also the code entry point.
-      enclaveData[i].state = STATE_BUILDING;
+      thisData->codeEntryPoint = page_base; //This assumes the first page that is given to an enclave is also the code entry point.
+      thisData->state = STATE_BUILDING;
       putPageEntry(page_base, recipient);
       break;
     case STATE_BUILDING:
@@ -167,23 +170,17 @@ Address_t waitForEnclave() {
       message.source = message.destination;
       message.destination = tmpID;
       sendMessage(&message);
-      enclaveData = (struct EnclaveData_t *) ENCLAVE_DATA_BASE_ADDRESS; //TODO make this dependent on the received message.
-      int i;
-      for(i = 0; ; i++) {
-        if(i >= 2*PAGE_SIZE / sizeof(struct EnclaveData_t)) {
+      enclaveData = getEnclaveDataPointer(message.content);
+      if(enclaveData == 0) {
 #ifdef PRAESIDIO_DEBUG
-          output_string("waitForEnclave: ERROR enclave entry point not found!\n");
+        output_string("waitForEnclave: ERROR enclave entry point not found!\n");
 #endif
-          return 0;
-        }
-        if(enclaveData[i].eID == message.content) {
-          break;
-        }
+        return 0;
       }
 
       SWITCH_ENCLAVE_ID(message.content);
-      entryPoint = enclaveData[i].codeEntryPoint;
-      enclaveData[i].state = STATE_LIVE;
+      entryPoint = enclaveData->codeEntryPoint;
+      enclaveData->state = STATE_LIVE;
       break;
     }
   }
@@ -265,7 +262,15 @@ void managementRoutine() {
 
 Address_t initialize() {
   CoreID_t coreID = getCoreID();
+  enclave_id_t oldEnclave = getCurrentEnclaveID();
   SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
+  if(oldEnclave != ENCLAVE_INVALID_ID) {
+      struct EnclaveData_t *enclaveData = getEnclaveDataPointer(oldEnclave);
+      if(enclaveData != 0) {
+          enclaveData->state = STATE_EMPTY;
+          enclaveData->eID = ENCLAVE_INVALID_ID;
+      }
+  }
   //TODO make a hash of management pages
   flushRemappingTable();
   flushL1Cache();
@@ -300,7 +305,6 @@ Address_t initialize() {
       //wait for 1000 milliseconds
     }
   }
-  //TODO check whether this core has returned from an enclave and if so send the main management core a message to set the enclave data state to empty.
   //setManagementInterruptTimer(1000); //Time in milliseconds
   return waitForEnclave();
 }
