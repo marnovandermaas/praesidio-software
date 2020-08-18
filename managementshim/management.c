@@ -81,18 +81,8 @@ char putPageEntry(Address_t baseAddress, enclave_id_t id) {
   return x;
 }
 
-void resetNormalWorld() {
-  //TODO somehow reset the remapping table of the normal world.
-}
-
 void clearWorkingMemory() {
-  //TODO go through all pages in working memory (except for the management code)
   //This is not necessary in Spike, but will be necessary when implementing in actual hardware to avoid cold boot attacks.
-}
-
-//TODO this function should be inline
-void saveCurrentContext(struct Context_t *context) {
-  //TODO save current context to context argument.
 }
 
 int createEnclave() {
@@ -190,7 +180,6 @@ Address_t waitForEnclave() {
 void managementRoutine() {
   struct Context_t savedContext;
   int index;
-  saveCurrentContext(&savedContext);
   enclave_id_t savedEnclaveID = getCurrentEnclaveID();
   static enclave_id_t internalArgument = ENCLAVE_INVALID_ID;
   static CoreID_t nextIdleCore = 2;
@@ -244,7 +233,7 @@ void managementRoutine() {
 #ifdef PRAESIDIO_DEBUG
         output_string("Received switch enclave message.\n");
 #endif
-        switchEnclave(nextIdleCore, message.content);//TODO actually keep track of which cores are available.
+        switchEnclave(nextIdleCore, message.content); //TODO actually keep track of which cores are available.
         break;
       case MSG_SET_ARGUMENT: //TODO include this in the donate page message.
 #ifdef PRAESIDIO_DEBUG
@@ -271,7 +260,7 @@ Address_t initialize() {
           enclaveData->eID = ENCLAVE_INVALID_ID;
       }
   }
-  //TODO make a hash of management pages
+  //TODO make a hash of management pages for attestation purposes
   flushRemappingTable();
   flushL1Cache();
   CoreID_t *enclaveCores = (CoreID_t *) 0x2000 /*ROM location of enclave 0's core ID*/;
@@ -297,7 +286,6 @@ Address_t initialize() {
       enclaveDataPointer[i].eID = ENCLAVE_INVALID_ID;
     }
 
-    resetNormalWorld();
     clearWorkingMemory();
     initialization_done = BOOL_TRUE; //This starts the normal world
     while(1) {
