@@ -11,9 +11,7 @@ int main(char * output) {
     buffer_address[i] = 'E';
   }
 
-  address = get_receive_mailbox_base_address(ENCLAVE_DEFAULT_ID);
-
-  if(give_read_permission(output, output, ENCLAVE_DEFAULT_ID)) { }
+  setup_communication_pages(ENCLAVE_DEFAULT_ID, (void *) output, (volatile void **) &address);
 
   for (int packet_size = PACKET_START; packet_size <= PACKET_MAX; packet_size += PACKET_INCREMENT) {
     for (int i = 0; i < NUMBER_OF_REPS; i++) {

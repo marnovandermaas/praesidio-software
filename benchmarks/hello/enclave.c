@@ -13,9 +13,7 @@ int main(char * output) {
   read_buffer[3] = '\n';
   read_buffer[4] = '\0';
 
-  address = get_receive_mailbox_base_address(ENCLAVE_DEFAULT_ID);
-
-  if(give_read_permission(output, output, ENCLAVE_DEFAULT_ID)) {
+  if(setup_communication_pages(ENCLAVE_DEFAULT_ID, (void *) output, (volatile void **) &address)) {
     read_buffer[0] = 'N';
     read_buffer[1] = 'o';
   }

@@ -46,6 +46,13 @@ volatile void* get_receive_mailbox_base_address(enclave_id_t sender_id) {
   return ret_val;
 }
 
+int setup_communication_pages(enclave_id_t receiver_id, void *send_address, volatile void **receive_address) {
+  int ret_val = 0;
+  *receive_address = get_receive_mailbox_base_address(receiver_id);
+  ret_val = give_read_permission(send_address, send_address, receiver_id);
+  return ret_val;
+}
+
 void output_hexbyte(unsigned char c) {
   unsigned char upper = (c >> 4);
   unsigned char lower = (c & 0xF);
