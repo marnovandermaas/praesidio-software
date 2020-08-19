@@ -3,16 +3,16 @@
 
 #include "praesidiopage.h"
 
-#define ENCLAVE_MANAGEMENT_ID (0xFFFFFFFFFFFFFFFE)
-#define ENCLAVE_DEFAULT_ID    (0)
-#define ENCLAVE_INVALID_ID    (0xFFFFFFFFFFFFFFFF)
+#define ENCLAVE_MANAGEMENT_ID (0xFFFFFFFE)
+#define ENCLAVE_DEFAULT_ID    (0x00000000)
+#define ENCLAVE_INVALID_ID    (0xFFFFFFFF)
 
 #define MANAGEMENT_ENCLAVE_BASE 0x04000000 //This number should be above 0x020c 0000 which is the end of CLINT and below 0x0400 0000 which is the start of IO
 #ifndef DRAM_BASE
 #define DRAM_BASE               0x80000000
 #endif
 
-typedef uint64_t enclave_id_t;
+typedef uint32_t enclave_id_t;
 typedef uint32_t CoreID_t;
 
 enum MessageType_t {
