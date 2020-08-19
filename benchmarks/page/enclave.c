@@ -11,7 +11,7 @@ int main(char * output) {
     start_buffer[1] = '\0';
 
     for(j = 0; j < PAGE_NUMBER_OF_REPEATS; j++) {
-        address = get_receive_mailbox_base_address(ENCLAVE_DEFAULT_ID);
+        address = get_read_only_page(ENCLAVE_DEFAULT_ID);
         long_address = (volatile long long *) address;
         if(j == 0) {
             if(give_read_permission(output, output, ENCLAVE_DEFAULT_ID)) { return -1; }

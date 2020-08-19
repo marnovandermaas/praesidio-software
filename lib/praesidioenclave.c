@@ -30,7 +30,7 @@ int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_
 }
 
 //Gets base address of mailbox page from which you can receive messages from the enclave specified in sender_id.
-volatile void* get_receive_mailbox_base_address(enclave_id_t sender_id) {
+volatile void* get_read_only_page(enclave_id_t sender_id) {
   volatile void *ret_val = 0;
   int i;
   enclave_id_t this_id = getCurrentEnclaveID();
@@ -48,7 +48,7 @@ volatile void* get_receive_mailbox_base_address(enclave_id_t sender_id) {
 
 int setup_communication_pages(enclave_id_t receiver_id, void *send_address, volatile void **receive_address) {
   int ret_val = 0;
-  *receive_address = get_receive_mailbox_base_address(receiver_id);
+  *receive_address = get_read_only_page(receiver_id);
   ret_val = give_read_permission(send_address, send_address, receiver_id);
   return ret_val;
 }
