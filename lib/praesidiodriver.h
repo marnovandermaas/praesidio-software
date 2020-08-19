@@ -14,10 +14,4 @@
 
 #define OUTPUT_STATS(input) ({asm volatile ("csrrw zero, 0x406, %0" : : "r"(input) : );})
 
-char* NW_create_send_mailbox(int enclave_descriptor);
-
-char* NW_get_receive_mailbox(int enclave_descriptor);
-
-int start_enclave(void *enclave_memory);
-
 #endif //PRAESIDIO_DRIVER_HEADER
