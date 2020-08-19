@@ -133,19 +133,45 @@ enum boolean donatePage(enclave_id_t recipient, Address_t page_base) {
 #endif
       return BOOL_FALSE;
   }
+  return BOOL_TRUE;
 }
 
-void switchEnclave(CoreID_t coreID, enclave_id_t eID) {
+enum boolean finalizeEnclave(enclave_id_t eID) {
+    struct EnclaveData_t *enclaveData = getEnclaveDataPointer(eID);
+    if(enclaveData != 0 && enclaveData->state == STATE_BUILDING) {
+        //TODO calculate the enclave measurement
+        enclaveData->state = STATE_LIVE;
+        return BOOL_TRUE;
+    }
+#ifdef PRAESIDIO_DEBUG
+    else {
+        output_string("Finalize enclave failed because enclave doesn't exist or it is not in the building state.\n");
+    }
+#endif
+    return BOOL_FALSE;
+}
+
+enum boolean switchEnclave(CoreID_t coreID, enclave_id_t eID) {
   //TODO make this work for actually switching enclaves and not just starting one up.
   struct Message_t command;
-  command.source = ENCLAVE_MANAGEMENT_ID;
-  command.destination = ENCLAVE_MANAGEMENT_ID - coreID;
-  command.type = MSG_SWITCH_ENCLAVE;
-  command.content = eID;
-  sendMessage(&command);
-  do {
-    receiveMessage(&command);
-  } while(command.source != ENCLAVE_MANAGEMENT_ID - coreID);
+  struct EnclaveData_t *enclaveData = getEnclaveDataPointer(eID);
+  if(enclaveData != 0 && enclaveData->state == STATE_LIVE) {
+      command.source = ENCLAVE_MANAGEMENT_ID;
+      command.destination = ENCLAVE_MANAGEMENT_ID - coreID;
+      command.type = MSG_SWITCH_ENCLAVE;
+      command.content = eID;
+      sendMessage(&command);
+      do {
+        receiveMessage(&command);
+      } while(command.source != ENCLAVE_MANAGEMENT_ID - coreID);
+      return BOOL_TRUE;
+  }
+#ifdef PRAESIDIO_DEBUG
+  else {
+      output_string("switch enclave: error enclave doesn't exist or it is in wrong state.\n");
+  }
+#endif
+  return BOOL_FALSE;
 }
 
 Address_t waitForEnclave() {
@@ -229,6 +255,12 @@ void managementRoutine() {
 #endif
         donatePage(internalArgument, message.content);
         break;
+      case MSG_FINALIZE:
+#ifdef PRAESIDIO_DEBUG
+        output_string("Received finalize enclave message.\n");
+#endif
+        finalizeEnclave(message.content);
+        break;
       case MSG_SWITCH_ENCLAVE:
 #ifdef PRAESIDIO_DEBUG
         output_string("Received switch enclave message.\n");
@@ -244,6 +276,11 @@ void managementRoutine() {
 #endif
         internalArgument = message.content;
         break;
+#ifdef PRAESIDIO_DEBUG
+      default:
+        output_string("Received message with unknown type.\n");
+        break;
+#endif
     }
     sendMessage(&response);
   }
