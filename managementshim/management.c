@@ -240,15 +240,6 @@ void managementRoutine() {
           response.content = ENCLAVE_INVALID_ID;
         }
         break;
-      case MSG_DELETE_ENCLAVE:
-#ifdef PRAESIDIO_DEBUG
-        output_string("Received delete enclave message.\n");
-#endif
-        break;
-      case MSG_ATTEST: //Not needed yet.
-        break;
-      case MSG_ACQUIRE_PHYS_CAP: //Not needed yet.
-        break;
       case MSG_DONATE_PAGE:
 #ifdef PRAESIDIO_DEBUG
         output_string("Received donate page enclave message.\n");
@@ -266,6 +257,18 @@ void managementRoutine() {
         output_string("Received switch enclave message.\n");
 #endif
         switchEnclave(nextIdleCore, message.content); //TODO actually keep track of which cores are available.
+        break;
+      case MSG_ATTEST:
+#ifdef PRAESIDIO_DEBUG
+        output_string("Received attest enclave message.\n");
+#endif
+        //TODO implement attestation using the measurements of the management shim and the enclave.
+        break;
+      case MSG_DELETE_ENCLAVE:
+#ifdef PRAESIDIO_DEBUG
+        output_string("Received delete enclave message.\n");
+#endif
+        //TODO implement delete enclave when management shim interupts enclaves
         break;
       case MSG_SET_ARGUMENT: //TODO include this in the donate page message.
 #ifdef PRAESIDIO_DEBUG
