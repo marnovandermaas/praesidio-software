@@ -19,7 +19,6 @@ enum MessageType_t {
   MSG_CREATE_ENCLAVE    = 0x0,
   MSG_DELETE_ENCLAVE    = 0x1,
   MSG_ATTEST            = 0x2,
-  MSG_ACQUIRE_PHYS_CAP  = 0x3,
   MSG_DONATE_PAGE       = 0x4,
   MSG_SWITCH_ENCLAVE    = 0x5,
   MSG_FINALIZE          = 0x6,
