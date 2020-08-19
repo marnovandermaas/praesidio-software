@@ -7,7 +7,7 @@
 #include <string.h> //strerror
 #include <stdio.h> //printf
 
-char* NW_create_send_mailbox(int enclave_descriptor) {
+char* get_send_page(int enclave_descriptor) {
   if (ioctl(enclave_descriptor, IOCTL_CREATE_SEND_MAILBOX) < 0) {
     printf("Error: failed to create send mailbox because %s.\n", strerror(errno));
     return NULL;
@@ -15,7 +15,7 @@ char* NW_create_send_mailbox(int enclave_descriptor) {
   return (char *) mmap(NULL, 1 << PAGE_BIT_SHIFT, PROT_WRITE, MAP_SHARED, enclave_descriptor, 0);
 }
 
-char* NW_get_receive_mailbox(int enclave_descriptor) {
+volatile char* get_read_only_page(int enclave_descriptor) {
   if (ioctl(enclave_descriptor, IOCTL_GET_RECEIVE_MAILBOX) < 0) { //create send mailbox
     printf("Error: failed to get receive mailbox because %s.\n", strerror(errno));
     return NULL;
@@ -27,7 +27,12 @@ char* NW_get_receive_mailbox(int enclave_descriptor) {
   return (char *) mapped_address;
 }
 
-int start_enclave(void *enclave_memory) {
+void setup_communication_pages(int enclave_descriptor, char **send_page, volatile char **receive_page) {
+  *send_page = get_send_page(enclave_descriptor);
+  *receive_page = get_read_only_page(enclave_descriptor);
+}
+
+int create_enclave(void *enclave_memory) {
   char device_name[128]; //TODO include 128 from driver header file.
   char device_path[128];
   int label = 1000;
@@ -63,4 +68,17 @@ int start_enclave(void *enclave_memory) {
     return -1;
   }
   return enclave_descriptor;
+}
+
+void delete_enclave(int enclave_descriptor) {
+  if (ioctl(enclave_descriptor, IOCTL_DELETE_ENCLAVE) < 0) {
+    printf("Error: failed to delete enclave because %s.\n", strerror(errno));
+  }
+}
+
+//TODO return public key and signature
+void attest_enclave(int enclave_descriptor, int nonce) {
+  if (ioctl(enclave_descriptor, IOCTL_ATTEST_ENCLAVE) < 0) {
+    printf("Error: failed to attest enclave because %s.\n", strerror(errno));
+  }
 }

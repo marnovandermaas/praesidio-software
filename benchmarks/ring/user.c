@@ -35,15 +35,13 @@ int main(void)
     enclave_memory_buffer[i] = 0;
   }
 
-  enclave_descriptor = start_enclave((void*) enclave_memory_buffer);
+  enclave_descriptor = create_enclave((void*) enclave_memory_buffer);
 
-  tx_address = NW_create_send_mailbox(enclave_descriptor);
+  setup_communication_pages(enclave_descriptor, &tx_address, &rx_address);
   if(tx_address == NULL) {
     printf("Error setting up send mailbox.\n");
     return -1;
   }
-
-  rx_address = NW_get_receive_mailbox(enclave_descriptor);
   if(rx_address == NULL) {
     printf("Error getting receive mailbox.\n");
     return -1;

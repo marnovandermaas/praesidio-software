@@ -33,11 +33,11 @@ int main(void)
         enclave_memory_buffer[i] = 0;
     }
 
-    enclave_descriptor = start_enclave((void*) enclave_memory_buffer);
+    enclave_descriptor = create_enclave((void*) enclave_memory_buffer);
 
     for(j = 0; j < PAGE_NUMBER_OF_REPEATS; j++) {
         OUTPUT_STATS(label);
-        tx_address = NW_create_send_mailbox(enclave_descriptor);
+        tx_address = get_send_page(enclave_descriptor);
         if(tx_address == NULL) {
             printf("Error setting up send mailbox.\n");
             return -1;
@@ -48,7 +48,7 @@ int main(void)
         }
 
         if(j == 0) {
-            rx_address = NW_get_receive_mailbox(enclave_descriptor);
+            rx_address = get_read_only_page(enclave_descriptor);
             if(rx_address == NULL) {
                 printf("Error getting receive mailbox.\n");
                 return -1;
