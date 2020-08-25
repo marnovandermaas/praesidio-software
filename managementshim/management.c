@@ -111,18 +111,24 @@ enum boolean donatePage(enclave_id_t recipient, Address_t page_base) {
 }
 
 enum boolean finalizeEnclave(enclave_id_t eID) {
-    struct EnclaveData_t *enclaveData = getEnclaveDataPointer(eID);
-    if(enclaveData != 0 && enclaveData->state == STATE_BUILDING) {
-        //TODO calculate the enclave measurement
-        enclaveData->state = STATE_LIVE;
-        return BOOL_TRUE;
-    }
+  struct EnclaveData_t *enclaveData = getEnclaveDataPointer(eID);
+  if(enclaveData != 0 && enclaveData->state == STATE_BUILDING) {
+    //TODO calculate the enclave measurement
+    enclaveData->state = STATE_LIVE;
+    return BOOL_TRUE;
+  }
 #ifdef PRAESIDIO_DEBUG
-    else {
-        output_string("Finalize enclave failed because enclave doesn't exist or it is not in the building state.\n");
+  else {
+    if(enclaveData) {
+      output_string("Finalize enclave failed because enclave doesn't exist.\n");
+    } else {
+      output_string("Finalize enclave failed because enclave is not in building state ");
+      output_hexbyte(enclaveData->state);
+      OUTPUT_CHAR('\n');
     }
+  }
 #endif
-    return BOOL_FALSE;
+  return BOOL_FALSE;
 }
 
 enum boolean switchEnclave(CoreID_t coreID, enclave_id_t eID) {
@@ -268,6 +274,12 @@ Address_t initialize() {
     SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID);
 #ifdef PRAESIDIO_DEBUG
     output_string("management.c: In management enclave.\n");
+    struct Message_t msg;
+    output_string("management.c: type offset in message ");
+    output_hexbyte((long) &msg.type - (long) &msg);
+    output_string(" message size ");
+    output_hexbyte(sizeof(struct Message_t));
+    OUTPUT_CHAR('\n');
 #endif
     state.nextEnclaveID = 1;
     for(int i = 0; i < NUMBER_OF_ENCLAVE_CORES; i++) {
