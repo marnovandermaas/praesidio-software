@@ -160,8 +160,8 @@ enum boolean switchEnclave(CoreID_t coreID, enclave_id_t eID) {
   if(enclaveData != 0 && enclaveData->state == STATE_LIVE) {
       command.source = ENCLAVE_MANAGEMENT_ID;
       command.destination = ENCLAVE_MANAGEMENT_ID - coreID;
-      command.type = MSG_SWITCH_ENCLAVE;
-      command.content = eID;
+      command.type = MSG_RUN;
+      command.arguments[0] = eID;
       sendMessage(&command);
       do {
         receiveMessage(&command);
@@ -188,7 +188,7 @@ Address_t waitForEnclave() {
       message.source = message.destination;
       message.destination = tmpID;
       sendMessage(&message);
-      enclaveData = getEnclaveDataPointer(message.content);
+      enclaveData = getEnclaveDataPointer(message.arguments[0]);
       if(enclaveData == 0) {
 #ifdef PRAESIDIO_DEBUG
         output_string("waitForEnclave: ERROR enclave entry point not found!\n");
@@ -196,7 +196,7 @@ Address_t waitForEnclave() {
         return 0;
       }
 
-      SWITCH_ENCLAVE_ID(message.content);
+      SWITCH_ENCLAVE_ID(message.arguments[0]);
       entryPoint = enclaveData->codeEntryPoint;
       enclaveData->state = STATE_LIVE;
       break;
@@ -219,46 +219,41 @@ void managementRoutine() {
   response.source = message.destination;
   response.destination = message.source;
   response.type = message.type;
-  response.content = 0;
+  response.arguments[0] = 0;
+  response.arguments[1] = 0;
 
   if(message.source == ENCLAVE_DEFAULT_ID &&
       message.destination == ENCLAVE_MANAGEMENT_ID) {
-#ifdef PRAESIDIO_DEBUG
-      output_hexbyte(message.type);
-      OUTPUT_CHAR(' ');
-      output_hexbyte(message.source);
-      OUTPUT_CHAR('\n');
-#endif
     switch(message.type) {
-      case MSG_CREATE_ENCLAVE:
+      case MSG_CREATE:
 #ifdef PRAESIDIO_DEBUG
         output_string("Received create enclave message.\n");
 #endif
         index = createEnclave();
         if(index >= 0) {
           struct EnclaveData_t *enclaveData = (struct EnclaveData_t *) ENCLAVE_DATA_BASE_ADDRESS;
-          response.content = enclaveData[index].eID;
+          response.arguments[0] = enclaveData[index].eID;
         } else {
-          response.content = ENCLAVE_INVALID_ID;
+          response.arguments[0] = ENCLAVE_INVALID_ID;
         }
         break;
       case MSG_DONATE_PAGE:
 #ifdef PRAESIDIO_DEBUG
         output_string("Received donate page enclave message.\n");
 #endif
-        donatePage(internalArgument, message.content);
+        donatePage(message.arguments[0], message.arguments[1]);
         break;
       case MSG_FINALIZE:
 #ifdef PRAESIDIO_DEBUG
         output_string("Received finalize enclave message.\n");
 #endif
-        finalizeEnclave(message.content);
+        finalizeEnclave(message.arguments[0]);
         break;
-      case MSG_SWITCH_ENCLAVE:
+      case MSG_RUN:
 #ifdef PRAESIDIO_DEBUG
         output_string("Received switch enclave message.\n");
 #endif
-        switchEnclave(nextIdleCore, message.content); //TODO actually keep track of which cores are available.
+        switchEnclave(nextIdleCore, message.arguments[0]); //TODO actually keep track of which cores are available.
         break;
       case MSG_ATTEST:
 #ifdef PRAESIDIO_DEBUG
@@ -266,20 +261,11 @@ void managementRoutine() {
 #endif
         //TODO implement attestation using the measurements of the management shim and the enclave.
         break;
-      case MSG_DELETE_ENCLAVE:
+      case MSG_DELETE:
 #ifdef PRAESIDIO_DEBUG
         output_string("Received delete enclave message.\n");
 #endif
         //TODO implement delete enclave when management shim interupts enclaves
-        break;
-      case MSG_SET_ARGUMENT: //TODO include this in the donate page message.
-#ifdef PRAESIDIO_DEBUG
-        output_string("Received set argument message.\n");
-        output_string("internalArgument set to: ");
-        OUTPUT_CHAR(message.content + '0');
-        OUTPUT_CHAR('\n');
-#endif
-        internalArgument = message.content;
         break;
 #ifdef PRAESIDIO_DEBUG
       default:

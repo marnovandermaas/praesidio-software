@@ -22,10 +22,10 @@ int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_
     : "r"(page_number)
     :
   );
-  message.type = MSG_SEND_MAILBOX;
-  message.content = page_number;
+  message.type = MSG_SHARE_PAGE;
   message.source = getCurrentEnclaveID();
   message.destination = receiver_id;
+  message.arguments[0] = page_number;
   sendMessage(&message);
   return 0;
 }
@@ -36,11 +36,10 @@ volatile void* get_read_only_page(enclave_id_t sender_id) {
   int i;
   enclave_id_t this_id = getCurrentEnclaveID();
   struct Message_t message;
-  SET_ARGUMENT_ENCLAVE_IDENTIFIER(sender_id);
   do {
     receiveMessage(&message);
-    if(message.type == MSG_SEND_MAILBOX && message.destination == this_id) {
-        ret_val = (volatile void*) (message.content << PAGE_BIT_SHIFT) + DRAM_BASE;
+    if(message.type == MSG_SHARE_PAGE && message.source == sender_id && message.destination == this_id) {
+        ret_val = (volatile void*) (message.arguments[0] << PAGE_BIT_SHIFT) + DRAM_BASE;
     }
     for(i=0; i<100; i++);//delay a bit before asking again.
   } while (ret_val == 0);

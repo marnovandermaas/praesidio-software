@@ -7,27 +7,28 @@
 #define ENCLAVE_DEFAULT_ID    (0x00000000)
 #define ENCLAVE_INVALID_ID    (0xFFFFFFFF)
 
-#define MANAGEMENT_ENCLAVE_BASE 0x04000000 //This number should be above 0x020c 0000 which is the end of CLINT and below 0x0400 0000 which is the start of IO
+ //These base number should be above 0x020c 0000 which is the end of CLINT and below 0x8000 0000 which is the start of DRAM
+#define MANAGEMENT_ENCLAVE_BASE (0x04000000)
+#define MAILBOX_BASE            (0x03000000)
+#define MAILBOX_SIZE            (1 << PAGE_BIT_SHIFT)
+
 #ifndef DRAM_BASE
-#define DRAM_BASE               0x80000000
+#define DRAM_BASE               (0x80000000)
 #endif
 
 typedef uint32_t enclave_id_t;
 typedef uint32_t CoreID_t;
 
 enum MessageType_t {
-  MSG_CREATE_ENCLAVE    = 0x0,
-  MSG_DELETE_ENCLAVE    = 0x1,
-  MSG_ATTEST            = 0x2,
-  MSG_DONATE_PAGE       = 0x4,
-  MSG_SWITCH_ENCLAVE    = 0x5,
-  MSG_FINALIZE          = 0x6,
-  MSG_SET_ARGUMENT      = 0x7,
-  MSG_SEND_MAILBOX      = 0x8,
-  MSG_MASK              = 0xF,
+  MSG_CREATE      = 0x0,
+  MSG_DONATE_PAGE = 0x1,
+  MSG_FINALIZE    = 0x2,
+  MSG_ATTEST      = 0x3,
+  MSG_RUN         = 0x4,
+  MSG_SHARE_PAGE  = 0x5,
+  MSG_DELETE      = 0x6,
+  MSG_INVALID     = 0xF, //This must be higher value than the other message types
 };
-
-#define SIZE_OF_MESSAGE_TYPE 4 //Assuming message type can fit in this many bits.
 
 enum boolean {
   BOOL_FALSE=0,
@@ -38,7 +39,7 @@ struct Message_t {
   enum MessageType_t type;
   enclave_id_t source;
   enclave_id_t destination;
-  uint64_t content; //Assuming that an int can fit an Address_t
+  uint64_t arguments[2];
 };
 
 #endif //ENCLAVE_LIBRARY_HEADER
