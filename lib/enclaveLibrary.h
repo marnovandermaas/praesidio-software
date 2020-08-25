@@ -8,7 +8,7 @@
 #define ENCLAVE_INVALID_ID    (0xFFFFFFFF)
 
  //These base number should be above 0x020c 0000 which is the end of CLINT and below 0x8000 0000 which is the start of DRAM
-#define MANAGEMENT_ENCLAVE_BASE (0x04000000)
+#define MANAGEMENT_SHIM_BASE (0x04000000)
 #define MAILBOX_BASE            (0x03000000)
 #define MAILBOX_SIZE            (1 << PAGE_BIT_SHIFT)
 

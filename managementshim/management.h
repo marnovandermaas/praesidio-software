@@ -6,7 +6,7 @@
 #include "praesidiooutput.h"
 
 //Definition of the base addresses of the three trusted pages:
-#define MANAGEMENT_CODE_BASE_ADDRESS ((Address_t) MANAGEMENT_ENCLAVE_BASE)
+#define MANAGEMENT_CODE_BASE_ADDRESS ((Address_t) MANAGEMENT_SHIM_BASE)
 #define PAGE_DIRECTORY_BASE_ADDRESS ((Address_t) MANAGEMENT_CODE_BASE_ADDRESS + PAGE_SIZE) //Assumes code is less than 1 page in size
 #define ENCLAVE_DATA_BASE_ADDRESS ((Address_t) PAGE_DIRECTORY_BASE_ADDRESS + PAGE_SIZE)
 #define MANAGEMENT_STACK_BASE_ADDRESS ((Address_t) ENCLAVE_DATA_BASE_ADDRESS + 2*PAGE_SIZE)
@@ -47,7 +47,7 @@ struct EnclaveData_t {
 };
 
 struct ManagementState_t { //TODO make the runningEnclaves and enclaveCores variables dynamic and based on device tree value.
-  enclave_id_t runningEnclaves[NUMBER_OF_ENCLAVE_CORES]; //Initialize as equal to MANAGEMENT_ENCLAVE_ID
+  enclave_id_t runningEnclaves[NUMBER_OF_ENCLAVE_CORES]; //Initialize as equal to ENCLAVE_MANAGEMENT_ID
   enclave_id_t nextEnclaveID; //Initialize as 1
   struct PhysCap_t rootCapability; //Initialize with special instruction
   Address_t PagePool; //Initialize as Null
