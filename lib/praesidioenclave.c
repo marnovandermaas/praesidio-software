@@ -1,5 +1,6 @@
 #include "praesidioenclave.h"
 #include "communication.h"
+#include "mailbox.h"
 
 //Sets read access to a page to an enclave
 int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_t receiver_id) {

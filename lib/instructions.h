@@ -12,9 +12,6 @@ enclave_id_t getCurrentEnclaveID(void);
 //This is a helper instruction, but will be removed in final design
 #define SET_ARGUMENT_ENCLAVE_IDENTIFIER(id) ({asm volatile ("csrrw zero, 0x40D, %0" : : "r"(id) : );})
 
-void sendMessage(struct Message_t *txMsg);
-void receiveMessage(struct Message_t *rxMsg);
-
 uint64_t getCycleCount(void);
 
 #endif //PRAESIDIO_INSTRUCTIONS_H

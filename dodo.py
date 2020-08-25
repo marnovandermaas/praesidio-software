@@ -21,6 +21,7 @@ benchmarkDirs = benchmarkDirs[1:] #Exclude root dir
 
 shim = manageDir+"management"
 instr = libDir+"instructions"
+mailb = libDir+"mailbox"
 managementInit = manageDir+"managementinit"
 enclaveInit = libDir+"enclaveinit"
 
@@ -34,10 +35,10 @@ bareCompileFlags = includeCompilerFlags + "-nostdlib -mcmodel=medany "
 enclaveCompilerFlags = bareCompileFlags + "-T"+libDir+"enclavelink.ld "
 shimCompilerFlags = bareCompileFlags + "-T"+manageDir+"managementlink.ld -Os"
 
-allObjects = [shim, instr, libDir+"praesidioenclave", libDir+"praesidiouser", libDir+"praesidio"]
+allObjects = [shim, instr, mailb, libDir+"praesidioenclave", libDir+"praesidiouser", libDir+"praesidio"]
 userExecs = []
 compileFlagOutDeps = []
-compileFlagOutDeps.append( (shimCompilerFlags, buildDir+shim+".out", [buildDir+val+".o" for val in [shim, managementInit, instr]]) )
+compileFlagOutDeps.append( (shimCompilerFlags, buildDir+shim+".out", [buildDir+val+".o" for val in [shim, managementInit, instr, mailb, libDir+"praesidioenclave"]]) )
 for dir in benchmarkDirs:
     outputFile = dir+"enclave"
     userFile = dir+"user"
@@ -45,7 +46,7 @@ for dir in benchmarkDirs:
     binaries.append(buildDir+outputFile)
     allObjects.append(outputFile)
     allObjects.append(userFile)
-    compileFlagOutDeps.append( (enclaveCompilerFlags, buildDir+outputFile+".out", [buildDir+val+".o" for val in [outputFile, enclaveInit, instr, libDir+"praesidioenclave", libDir+"praesidio"]]) )
+    compileFlagOutDeps.append( (enclaveCompilerFlags, buildDir+outputFile+".out", [buildDir+val+".o" for val in [outputFile, enclaveInit, instr, mailb, libDir+"praesidioenclave", libDir+"praesidio"]]) )
     compileFlagOutDeps.append( ("", buildDir+userFile+".out", [buildDir+val+".o" for val in [userFile, instr, libDir+"praesidiouser", libDir+"praesidio"]]) )
 
 def task_compile():
