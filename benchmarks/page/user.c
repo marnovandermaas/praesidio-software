@@ -43,9 +43,10 @@ int main(void)
             return -1;
         }
         long_address = (long long *) tx_address;
-        for(i = 0; i < (1 << PAGE_BIT_SHIFT) / sizeof(long long); i++) {
+        for(i = 1; i < (1 << PAGE_BIT_SHIFT) / sizeof(long long); i++) {
             long_address[i] = i + j;
         }
+        long_address[0] = j;
 
         if(j == 0) {
             rx_address = get_read_only_page(enclave_descriptor);
