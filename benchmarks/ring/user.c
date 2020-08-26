@@ -82,8 +82,7 @@ int main(void)
         }
         read_aggregator |= read_buffer[j];
       }
-      printf("(%d,%c) ", i, read_aggregator);
-      //printf("\n");
+      //printf("(%d,%c) ", i, read_aggregator);
     }
     printf("\n");
   }
