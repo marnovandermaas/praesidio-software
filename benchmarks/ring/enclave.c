@@ -18,6 +18,15 @@ int main(char * output) {
       tmp_length = send_enclave_message(output, buffer_address, packet_size);
       output += tmp_length;
       tmp_length = get_enclave_message(address, buffer_address);
+      // OUTPUT_CHAR('E');
+      // OUTPUT_CHAR(' ');
+      // output_hexbyte((char) tmp_length);
+      // OUTPUT_CHAR('\n');
+      // for(int j = 0; j < packet_size; j++) {
+      //     output_hexbyte(buffer_address[j]);
+      //     OUTPUT_CHAR(' ');
+      // }
+      // OUTPUT_CHAR('\n');
       address += tmp_length;
     }
   }

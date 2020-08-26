@@ -50,7 +50,7 @@ int main(void)
   volatile char read_aggregator;
   for (int packet_size = PACKET_START; packet_size <= PACKET_MAX; packet_size += PACKET_INCREMENT) {
     printf("Packet size 0x%08x ", packet_size);
-    for (int i = 0; i < packet_size-1; i++) {
+    for (int i = 0; i < packet_size; i++) {
       send_buffer[i] = fill_char;
     }
     fill_char += 1;
@@ -77,7 +77,8 @@ int main(void)
       read_aggregator = 0x00;
       for(int j = 0; j < tmp_length - LENGTH_SIZE; j++) {
         if(read_buffer[j] < 'A' || read_buffer[j] > 'Z') {
-            printf("wrong char: %c\n", read_buffer[j]);
+            printf("wrong char: 0x%x, %d, 0x%x\n", read_buffer[j], j, read_aggregator);
+            return -3;
         }
         read_aggregator |= read_buffer[j];
       }
