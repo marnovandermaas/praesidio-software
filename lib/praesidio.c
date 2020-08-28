@@ -3,13 +3,15 @@
 
 //Returns the starting index for the next message.
 int send_enclave_message(char *mailbox_address, char *message, int length) {
-  int current_offset = (long long) mailbox_address & ((1 << PAGE_BIT_SHIFT) - 1);
+  int current_offset = ((long long) mailbox_address) & ((1 << PAGE_BIT_SHIFT) - 1);
   int offset = LENGTH_SIZE + length;
   int i, index;
 
-  if(length > ((1 << PAGE_BIT_SHIFT)-2*LENGTH_SIZE)) {
+  if(length > ((1 << PAGE_BIT_SHIFT) - 2*LENGTH_SIZE)) {
     return 0;
   }
+
+  mailbox_address[0] = BUSY_BYTE;
 
   for(i = 0; i < length; i++) {
     index = LENGTH_SIZE + i;
@@ -31,13 +33,13 @@ int send_enclave_message(char *mailbox_address, char *message, int length) {
       index -= (1 << PAGE_BIT_SHIFT);
     }
     mailbox_address[index] = ((length >> (8*i)) & 0xFF);
-  }// mailbox_address[1] = length & 0xFF; mailbox_address[0] = 0;
+  }
   return offset;
 }
 
 //Returns the starting index for the next message
 int get_enclave_message(volatile char *mailbox_address, char *read_buffer) {//TODO return the length of the received message as well
-  int current_offset = (long long) mailbox_address & ((1 << PAGE_BIT_SHIFT) - 1);
+  int current_offset = ((long long) mailbox_address) & ((1 << PAGE_BIT_SHIFT) - 1);
   int i, index;
   int length = 0;
   int ret_val = 0;
@@ -50,7 +52,7 @@ int get_enclave_message(volatile char *mailbox_address, char *read_buffer) {//TO
       index -= (1 << PAGE_BIT_SHIFT);
     }
     length |= (((int) (mailbox_address[index] & 0xFF)) << (8*(LENGTH_SIZE-1-i)));
-  }// length = mailbox_address[1] & 0xFF;
+  }
 
   if (length > ((1 << PAGE_BIT_SHIFT) - 2*LENGTH_SIZE)) {
     return 0;
