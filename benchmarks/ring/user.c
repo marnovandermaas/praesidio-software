@@ -47,7 +47,7 @@ int main(void)
     return -1;
   }
 
-  volatile char read_aggregator;
+  //volatile char read_aggregator;
   for (int packet_size = PACKET_START; packet_size <= PACKET_MAX; packet_size += PACKET_INCREMENT) {
     printf("Packet size 0x%08x ", packet_size);
     for (int i = 0; i < packet_size; i++) {
@@ -74,7 +74,7 @@ int main(void)
       }
       rx_address += tmp_length;
 
-      read_aggregator = 0x00;
+      /*read_aggregator = 0x00;
       if(tmp_length < 0) { //In case the ring buffer runs past the page boundary
           tmp_length += (1 << PAGE_BIT_SHIFT);
       }
@@ -84,8 +84,8 @@ int main(void)
             return -3;
         }
         read_aggregator |= read_buffer[j];
-      }
-      printf("(%d,%c) ", i, read_aggregator);
+      }*/
+      //printf("(%d,%c) ", i, read_aggregator);
     }
     printf("\n");
   }
