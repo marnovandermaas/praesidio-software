@@ -54,7 +54,7 @@ int main(void)
       send_buffer[i] = fill_char;
     }
     fill_char += 1;
-    if(fill_char == 'Z') fill_char = 'A';
+    if(fill_char > 'Z') fill_char = 'A';
 
     for (int i = 0; i < NUMBER_OF_REPS; i++) {
       OUTPUT_STATS(packet_size);
@@ -75,6 +75,9 @@ int main(void)
       rx_address += tmp_length;
 
       read_aggregator = 0x00;
+      if(tmp_length < 0) { //In case the ring buffer runs past the page boundary
+          tmp_length += (1 << PAGE_BIT_SHIFT);
+      }
       for(int j = 0; j < tmp_length - LENGTH_SIZE; j++) {
         if(read_buffer[j] < 'A' || read_buffer[j] > 'Z') {
             printf("wrong char: 0x%x, %d, 0x%x\n", read_buffer[j], j, read_aggregator);
@@ -82,7 +85,7 @@ int main(void)
         }
         read_aggregator |= read_buffer[j];
       }
-      //printf("(%d,%c) ", i, read_aggregator);
+      printf("(%d,%c) ", i, read_aggregator);
     }
     printf("\n");
   }
