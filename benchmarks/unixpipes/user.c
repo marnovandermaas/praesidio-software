@@ -1,3 +1,6 @@
+// See LICENSE file for the license details of MIT
+// Copyright 2020 Marno van der Maas
+
 #include <sys/wait.h> /* wait */
 #include <stdio.h>
 #include <stdlib.h>   /* exit functions */

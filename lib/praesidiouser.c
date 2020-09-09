@@ -1,3 +1,6 @@
+// See LICENSE file for the license details of MIT
+// Copyright 2020 Marno van der Maas
+
 #include "praesidiouser.h"
 #include <sys/ioctl.h> //ioctl
 #include <sys/mman.h> //mmap

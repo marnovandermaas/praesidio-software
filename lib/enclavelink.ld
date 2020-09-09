@@ -1,3 +1,6 @@
+/* See LICENSE file for the license details of MIT */
+/* Copyright 2020 Marno van der Maas */
+
 OUTPUT_ARCH( "riscv" )
 
 __mem   = 0x00000000;

@@ -1,3 +1,6 @@
+# See LICENSE file for the license details of MIT
+# Copyright 2020 Marno van der Maas
+
 # RISC-V baremetal init.s
 # This code is executed first.
 

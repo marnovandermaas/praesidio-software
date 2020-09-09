@@ -1,3 +1,6 @@
+// See LICENSE file for the license details of MIT
+// Copyright 2020 Marno van der Maas
+
 #ifndef PRAESIDIO_INSTRUCTIONS_H
 #define PRAESIDIO_INSTRUCTIONS_H
 

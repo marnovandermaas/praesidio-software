@@ -1,3 +1,6 @@
+// See LICENSE file for the license details of MIT
+// Copyright 2020 Marno van der Maas
+
 #ifndef PRAESIDIO_ENCLAVE_HEADER
 #define PRAESIDIO_ENCLAVE_HEADER
 
