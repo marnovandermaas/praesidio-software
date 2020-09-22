@@ -186,12 +186,14 @@ Address_t waitForEnclave() {
   return entryPoint;
 }
 
-void managementRoutine() {
+//Returns whether enclave is scheduled on this core.
+enum boolean managementRoutine(const CoreID_t managementCore) {
+  enum boolean retVal = BOOL_FALSE;
   struct Context_t savedContext;
   int index;
   enclave_id_t savedEnclaveID = getCurrentEnclaveID();
   static enclave_id_t internalArgument = ENCLAVE_INVALID_ID;
-  static CoreID_t nextIdleCore = 2;
+  CoreID_t chosenCore = managementCore;
 
   struct Message_t message;
   receiveMessage(&message);
@@ -234,7 +236,11 @@ void managementRoutine() {
 #ifdef PRAESIDIO_DEBUG
         output_string("Received switch enclave message.\n");
 #endif
-        switchEnclave(nextIdleCore, message.arguments[0]); //TODO actually keep track of which cores are available.
+        //TODO make this work with multiple enclave cores.
+        switchEnclave(chosenCore, message.arguments[0]); //TODO actually keep track of which cores are available.
+        if(chosenCore == managementCore) {
+          retVal = BOOL_TRUE;
+        }
         break;
       case MSG_ATTEST:
 #ifdef PRAESIDIO_DEBUG
@@ -256,6 +262,7 @@ void managementRoutine() {
     }
     sendMessage(&response);
   }
+  return retVal;
 }
 
 Address_t initialize() {
@@ -300,11 +307,14 @@ Address_t initialize() {
       initialization_done = BOOL_TRUE; //This starts the normal world
     }
     while(1) {
-      managementRoutine();
+      if(managementRoutine(coreID) == BOOL_TRUE) {
+        break;
+      }
       //wait for 1000 milliseconds
     }
   }
   //setManagementInterruptTimer(1000); //Time in milliseconds
+  SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
   return waitForEnclave();
 }
 
