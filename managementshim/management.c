@@ -139,56 +139,66 @@ enum boolean switchEnclave(CoreID_t coreID, enclave_id_t eID) {
   struct Message_t command;
   struct EnclaveData_t *enclaveData = getEnclaveDataPointer(eID);
   if(enclaveData != 0 && enclaveData->state == STATE_LIVE) {
-      command.source = ENCLAVE_MANAGEMENT_ID;
-      command.destination = ENCLAVE_MANAGEMENT_ID - coreID;
-      command.type = MSG_RUN;
-      command.arguments[0] = eID;
-      sendMessage(&command);
-      do {
-        receiveMessage(&command);
-      } while(command.source != ENCLAVE_MANAGEMENT_ID - coreID);
-      return BOOL_TRUE;
+    command.source = ENCLAVE_MANAGEMENT_ID;
+    command.destination = ENCLAVE_MANAGEMENT_ID - coreID;
+    command.type = MSG_RUN;
+    command.arguments[0] = eID;
+    sendMessage(&command);
+    do {
+      receiveMessage(&command);
+    } while(command.source != ENCLAVE_MANAGEMENT_ID - coreID);
+    return BOOL_TRUE;
   }
 #ifdef PRAESIDIO_DEBUG
   else {
-      output_string("switch enclave: error enclave doesn't exist or it is in wrong state.\n");
+    output_string("switch enclave: error enclave doesn't exist or it is in wrong state.\n");
   }
 #endif
   return BOOL_FALSE;
 }
 
-Address_t waitForEnclave() {
+Address_t waitForEnclave(enclave_id_t enclaveID) {
   Address_t entryPoint = 0;
   struct Message_t message;
   struct EnclaveData_t *enclaveData;
   enclave_id_t tmpID;
-  while(1) {
-    receiveMessage(&message);
-    if(message.source == ENCLAVE_MANAGEMENT_ID) {
-      tmpID = message.source;
-      message.source = message.destination;
-      message.destination = tmpID;
-      sendMessage(&message);
-      enclaveData = getEnclaveDataPointer(message.arguments[0]);
-      if(enclaveData == 0) {
-#ifdef PRAESIDIO_DEBUG
-        output_string("waitForEnclave: ERROR enclave entry point not found!\n");
-#endif
-        return 0;
-      }
 
-      SWITCH_ENCLAVE_ID(message.arguments[0]);
-      entryPoint = enclaveData->codeEntryPoint;
-      enclaveData->state = STATE_LIVE;
-      break;
+#ifdef PRAESIDIO_DEBUG
+  output_string("waitForEnclave\n");
+#endif
+  if(enclaveID == ENCLAVE_INVALID_ID) {
+    while (1) {
+      receiveMessage(&message);
+      if(message.source == ENCLAVE_MANAGEMENT_ID) {
+        tmpID = message.source;
+        message.source = message.destination;
+        message.destination = tmpID;
+        sendMessage(&message);
+        break;
+      }
     }
+    tmpID = message.arguments[0];
+  } else {
+    tmpID = enclaveID;
   }
+
+  enclaveData = getEnclaveDataPointer(tmpID);
+  if(enclaveData == 0) {
+#ifdef PRAESIDIO_DEBUG
+    output_string("waitForEnclave: ERROR enclave entry point not found!\n");
+#endif
+    return 0;
+  }
+
+  SWITCH_ENCLAVE_ID(tmpID);
+  entryPoint = enclaveData->codeEntryPoint;
+  enclaveData->state = STATE_LIVE;
   return entryPoint;
 }
 
 //Returns whether enclave is scheduled on this core.
-enum boolean managementRoutine(const CoreID_t managementCore) {
-  enum boolean retVal = BOOL_FALSE;
+enclave_id_t managementRoutine(const CoreID_t managementCore) {
+  enclave_id_t retVal = ENCLAVE_INVALID_ID;
   struct Context_t savedContext;
   int index;
   enclave_id_t savedEnclaveID = getCurrentEnclaveID();
@@ -237,9 +247,10 @@ enum boolean managementRoutine(const CoreID_t managementCore) {
         output_string("Received switch enclave message.\n");
 #endif
         //TODO make this work with multiple enclave cores.
-        switchEnclave(chosenCore, message.arguments[0]); //TODO actually keep track of which cores are available.
         if(chosenCore == managementCore) {
-          retVal = BOOL_TRUE;
+          retVal = message.arguments[0];
+        } else {
+          switchEnclave(chosenCore, message.arguments[0]);
         }
         break;
       case MSG_ATTEST:
@@ -268,6 +279,7 @@ enum boolean managementRoutine(const CoreID_t managementCore) {
 Address_t initialize() {
   CoreID_t coreID = getCoreID();
   enclave_id_t oldEnclave = getCurrentEnclaveID();
+  enclave_id_t tmpEnclave = ENCLAVE_INVALID_ID;
   SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
   if(oldEnclave != ENCLAVE_INVALID_ID) {
       struct EnclaveData_t *enclaveData = getEnclaveDataPointer(oldEnclave);
@@ -307,15 +319,16 @@ Address_t initialize() {
       initialization_done = BOOL_TRUE; //This starts the normal world
     }
     while(1) {
-      if(managementRoutine(coreID) == BOOL_TRUE) {
-        break;
+      tmpEnclave = managementRoutine(coreID);
+      if(tmpEnclave != ENCLAVE_INVALID_ID) {
+        SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
+        return waitForEnclave(tmpEnclave);
       }
       //wait for 1000 milliseconds
     }
   }
   //setManagementInterruptTimer(1000); //Time in milliseconds
-  SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
-  return waitForEnclave();
+  return waitForEnclave(ENCLAVE_INVALID_ID);
 }
 
 void normalWorld() {
