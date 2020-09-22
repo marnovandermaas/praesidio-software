@@ -277,13 +277,7 @@ Address_t initialize() {
     SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID);
     if(initialization_done == BOOL_FALSE) {
 #ifdef PRAESIDIO_DEBUG
-    output_string("management.c: In management enclave.\n");
-    struct Message_t msg;
-    output_string("management.c: type offset in message ");
-    output_hexbyte((long) &msg.type - (long) &msg);
-    output_string(" message size ");
-    output_hexbyte(sizeof(struct Message_t));
-    OUTPUT_CHAR('\n');
+      output_string("management.c: In management enclave.\n");
 #endif
       state.nextEnclaveID = 1;
       for(int i = 0; i < NUMBER_OF_ENCLAVE_CORES; i++) {
