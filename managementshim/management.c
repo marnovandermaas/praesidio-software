@@ -275,6 +275,7 @@ Address_t initialize() {
   CoreID_t *enclaveCores = (CoreID_t *) 0x2000 /*ROM location of enclave 0's core ID*/;
   if(coreID == enclaveCores[1]) { //TODO fill state.enclaveCores
     SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID);
+    if(initialization_done == BOOL_FALSE) {
 #ifdef PRAESIDIO_DEBUG
     output_string("management.c: In management enclave.\n");
     struct Message_t msg;
@@ -284,25 +285,26 @@ Address_t initialize() {
     output_hexbyte(sizeof(struct Message_t));
     OUTPUT_CHAR('\n');
 #endif
-    state.nextEnclaveID = 1;
-    for(int i = 0; i < NUMBER_OF_ENCLAVE_CORES; i++) {
-      state.runningEnclaves[i] = ENCLAVE_MANAGEMENT_ID;
-    }
-    putPageEntry(MANAGEMENT_CODE_BASE_ADDRESS, ENCLAVE_MANAGEMENT_ID);
-    putPageEntry(PAGE_DIRECTORY_BASE_ADDRESS, ENCLAVE_MANAGEMENT_ID);
-    putPageEntry(ENCLAVE_DATA_BASE_ADDRESS, ENCLAVE_MANAGEMENT_ID);
-    fillPage(PAGE_DIRECTORY_BASE_ADDRESS, 0xFFFFFFFFFFFFFFFF);
-    fillPage(ENCLAVE_DATA_BASE_ADDRESS, 0x0000000000000000); //Fill the second page as well.
-    struct EnclaveData_t *enclaveDataPointer = (struct EnclaveData_t *) ENCLAVE_DATA_BASE_ADDRESS;
-    for(int i = 0; i < 2*PAGE_SIZE / sizeof(struct EnclaveData_t); i++) {
+      state.nextEnclaveID = 1;
+      for(int i = 0; i < NUMBER_OF_ENCLAVE_CORES; i++) {
+        state.runningEnclaves[i] = ENCLAVE_MANAGEMENT_ID;
+      }
+      putPageEntry(MANAGEMENT_CODE_BASE_ADDRESS, ENCLAVE_MANAGEMENT_ID);
+      putPageEntry(PAGE_DIRECTORY_BASE_ADDRESS, ENCLAVE_MANAGEMENT_ID);
+      putPageEntry(ENCLAVE_DATA_BASE_ADDRESS, ENCLAVE_MANAGEMENT_ID);
+      fillPage(PAGE_DIRECTORY_BASE_ADDRESS, 0xFFFFFFFFFFFFFFFF);
+      fillPage(ENCLAVE_DATA_BASE_ADDRESS, 0x0000000000000000); //Fill the second page as well.
+      struct EnclaveData_t *enclaveDataPointer = (struct EnclaveData_t *) ENCLAVE_DATA_BASE_ADDRESS;
+      for(int i = 0; i < 2*PAGE_SIZE / sizeof(struct EnclaveData_t); i++) {
 #ifdef PRAESIDIO_DEBUG
-      output_string("management.c: clearing enclave data\n");
+        output_string("management.c: clearing enclave data\n");
 #endif
-      enclaveDataPointer[i].eID = ENCLAVE_INVALID_ID;
-    }
+        enclaveDataPointer[i].eID = ENCLAVE_INVALID_ID;
+      }
 
-    clearWorkingMemory();
-    initialization_done = BOOL_TRUE; //This starts the normal world
+      clearWorkingMemory();
+      initialization_done = BOOL_TRUE; //This starts the normal world
+    }
     while(1) {
       managementRoutine();
       //wait for 1000 milliseconds
