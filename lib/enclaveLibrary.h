@@ -48,10 +48,9 @@ struct Message_t {
   uint64_t arguments[2];
 };
 
-struct page_tag_t
-{
-  enclave_id_t owner = ENCLAVE_DEFAULT_ID;
-  enclave_id_t reader = ENCLAVE_INVALID_ID;
+struct page_tag_t {
+  enclave_id_t owner;
+  enclave_id_t reader;
 };
 
 #endif //ENCLAVE_LIBRARY_HEADER
