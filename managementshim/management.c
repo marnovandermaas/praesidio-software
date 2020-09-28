@@ -46,15 +46,16 @@ char putPageEntry(Address_t baseAddress, enclave_id_t id) {
   //This load is to simulate the latency that would be caused to get this tag into the cache.
   char *basePointer = (char *) baseAddress;
   //volatile char x = *basePointer; //This is not allowed if management enclave does not own the page.
-  volatile char x = *((char *)(PAGE_DIRECTORY_BASE_ADDRESS + (baseAddress % PAGE_SIZE)));
-  SET_ARGUMENT_ENCLAVE_IDENTIFIER(id);
-  //Set the page to the specified enclave identifier.
-  asm volatile (
-    "csrrw zero, 0x40F, %0"
-    :
-    : "r"(basePointer)
-    :
-  );
+  volatile char x;
+  Address_t pageNumber = (baseAddress - DRAM_BASE) / PAGE_SIZE;
+  volatile struct page_tag_t *pageTag;
+  if(baseAddress < DRAM_BASE) {
+    //At the moment we do not support tagging pages outside of DRAM.
+    return '0';
+  }
+  x = *((volatile char *)(PAGE_DIRECTORY_BASE_ADDRESS + (baseAddress % PAGE_SIZE)));
+  pageTag = (volatile struct page_tag_t *) (TAGDIRECTORY_BASE + (pageNumber*sizeof(struct page_tag_t)));
+  pageTag->owner = id;
   return x;
 }
 

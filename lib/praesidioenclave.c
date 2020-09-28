@@ -18,13 +18,8 @@ int give_read_permission(void *phys_page_base, void *virt_page_base, enclave_id_
   }
   byte_base = (char *) virt_page_base;
   byte_base[0] = BUSY_BYTE;
-  SET_ARGUMENT_ENCLAVE_IDENTIFIER(receiver_id);
-  asm volatile (
-    "csrrw zero, 0x40A, %0"
-    :
-    : "r"(page_number)
-    :
-  );
+  volatile struct page_tag_t *page_tag = (volatile struct page_tag_t *) (TAGDIRECTORY_BASE + (page_number*sizeof(struct page_tag_t)));
+  page_tag->reader = receiver_id;
   message.type = MSG_SHARE_PAGE;
   message.source = getCurrentEnclaveID();
   message.destination = receiver_id;
