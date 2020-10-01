@@ -8,9 +8,9 @@
 #include "enclaveLibrary.h"
 #include "praesidiooutput.h"
 
-//Definition of the base addresses of the three trusted pages:
+//Definition of the base addresses:
 #define MANAGEMENT_CODE_BASE_ADDRESS ((Address_t) MANAGEMENT_SHIM_BASE)
-#define PAGE_DIRECTORY_BASE_ADDRESS ((Address_t) MANAGEMENT_CODE_BASE_ADDRESS + PAGE_SIZE) //Assumes code is less than 1 page in size
+#define PAGE_DIRECTORY_BASE_ADDRESS ((Address_t) MANAGEMENT_CODE_BASE_ADDRESS + 2*PAGE_SIZE) //Assumes code is less than 2 pages in size
 #define ENCLAVE_DATA_BASE_ADDRESS ((Address_t) PAGE_DIRECTORY_BASE_ADDRESS + PAGE_SIZE)
 #define MANAGEMENT_STACK_BASE_ADDRESS ((Address_t) ENCLAVE_DATA_BASE_ADDRESS + 2*PAGE_SIZE)
 
