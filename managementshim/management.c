@@ -12,6 +12,42 @@ struct ManagementState_t state;
 
 enum boolean initialization_done = BOOL_FALSE;
 
+//Defines taken out of encoding.h and clint.cc from Spike
+#define CLINT_BASE    (0x02000000)
+#define MTIMECMP_BASE (CLINT_BASE + 0x4000)
+#define MTIME_BASE    (CLINT_BASE + 0xbff8)
+#define IRQ_M_TIMER   (7)
+#define MSTATUS_MIE   (0x00000008)
+
+void resetManagementInterruptTimer() {
+  volatile unsigned long long currentTime;
+  CoreID_t coreID = getCoreID();
+  currentTime = *((volatile unsigned long long *) MTIME_BASE);
+  currentTime += 100000;
+  *((volatile unsigned long long *) (MTIMECMP_BASE + (8*coreID))) = currentTime;
+}
+
+void initManagementInterruptTimer() {
+  int setMTIE = (1 << IRQ_M_TIMER);
+  int setMIE = MSTATUS_MIE;
+
+  resetManagementInterruptTimer();
+
+  asm volatile(
+    "csrs mie, %0"
+    : //output
+    : "r"(setMTIE)//input
+    : //clobbered
+  );
+
+  asm volatile(
+    "csrs mstatus, %0"
+    : //output
+    : "r"(setMIE)//input
+    : //clobbered
+  );
+}
+
 struct EnclaveData_t * getEnclaveDataPointer(enclave_id_t id) {
     //TODO add support for more enclaves than fit on one page.
     struct EnclaveData_t *enclaveData = (struct EnclaveData_t *) ENCLAVE_DATA_BASE_ADDRESS;
@@ -319,6 +355,7 @@ Address_t initialize() {
       clearWorkingMemory();
       initialization_done = BOOL_TRUE; //This starts the normal world
     }
+    initManagementInterruptTimer();
     while(1) {
       tmpEnclave = managementRoutine(coreID);
       if(tmpEnclave != ENCLAVE_INVALID_ID) {
@@ -328,12 +365,37 @@ Address_t initialize() {
       //wait for 1000 milliseconds
     }
   }
-  //setManagementInterruptTimer(1000); //Time in milliseconds
+  initManagementInterruptTimer();
   return waitForEnclave(ENCLAVE_INVALID_ID);
 }
 
 void normalWorld() {
   while(initialization_done == BOOL_FALSE) {
     //Waiting until enclave core 0 has finished initialization
+  }
+}
+
+void handleTrap() {
+  int setMTIP = MSTATUS_MIE;
+  int mipVal = 0;
+#ifdef PRAESIDIO_DEBUG
+  OUTPUT_CHAR('&');
+#endif
+  resetManagementInterruptTimer();
+  asm volatile(
+    "csrc mip, %0"
+    : //output
+    : "r"(setMTIP)//input
+    : //clobbered
+  );
+  asm volatile(
+    "csrr %0, mip"
+    : "=r"(mipVal)//output
+    : //input
+    : //clobbered
+  );
+  if(mipVal != 0) {
+    output_string("management.c: cannot recover from trap.\n");
+    while(1){} //TODO put enclave in error mode and return back to initialize.
   }
 }
