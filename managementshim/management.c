@@ -122,9 +122,11 @@ int createEnclave() {
   OUTPUT_CHAR(state.nextEnclaveID + '0');
   OUTPUT_CHAR('\n');
 #endif
+  enclaveData[i].state = STATE_CREATED;
+  enclaveData[i].pagesDonated = 0;
   enclaveData[i].eID = state.nextEnclaveID;
   state.nextEnclaveID += 1;
-  enclaveData[i].state = STATE_CREATED;
+  enclaveData[i].codeEntryPoint = 0;
   return i;
 }
 
@@ -151,6 +153,7 @@ enum boolean donatePage(enclave_id_t recipient, Address_t page_base) {
 #endif
       return BOOL_FALSE;
   }
+  thisData->pagesDonated += 1;
   return BOOL_TRUE;
 }
 
@@ -326,7 +329,9 @@ Address_t initialize() {
       struct EnclaveData_t *enclaveData = getEnclaveDataPointer(oldEnclave);
       if(enclaveData != 0) {
           enclaveData->state = STATE_EMPTY;
+          enclaveData->pagesDonated = 0;
           enclaveData->eID = ENCLAVE_INVALID_ID;
+          enclaveData->codeEntryPoint = 0;
       }
   }
   //TODO make a hash of management pages for attestation purposes
@@ -353,7 +358,10 @@ Address_t initialize() {
 #ifdef PRAESIDIO_DEBUG
         output_string("management.c: clearing enclave data\n");
 #endif
+        enclaveDataPointer[i].state = STATE_EMPTY;
+        enclaveDataPointer[i].pagesDonated = 0;
         enclaveDataPointer[i].eID = ENCLAVE_INVALID_ID;
+        enclaveDataPointer[i].codeEntryPoint = 0;
       }
 
       clearWorkingMemory();
