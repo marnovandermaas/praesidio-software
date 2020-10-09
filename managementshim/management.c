@@ -201,7 +201,7 @@ enum boolean switchEnclave(CoreID_t coreID, enclave_id_t eID) {
   return BOOL_FALSE;
 }
 
-Address_t waitForEnclave(enclave_id_t enclaveID) {
+enclave_id_t waitForEnclave(enclave_id_t enclaveID) {
   Address_t entryPoint = 0;
   struct Message_t message;
   struct EnclaveData_t *enclaveData;
@@ -227,17 +227,16 @@ Address_t waitForEnclave(enclave_id_t enclaveID) {
   }
 
   enclaveData = getEnclaveDataPointer(tmpID);
-  if(enclaveData == 0) {
+  if(enclaveData == 0 || enclaveData->codeEntryPoint == 0 || enclaveData->eID != tmpID) {
 #ifdef PRAESIDIO_DEBUG
     output_string("waitForEnclave: ERROR enclave entry point not found!\n");
 #endif
-    return 0;
+    return ENCLAVE_INVALID_ID;
   }
 
   SWITCH_ENCLAVE_ID(tmpID);
-  entryPoint = enclaveData->codeEntryPoint;
   enclaveData->state = STATE_LIVE;
-  return entryPoint;
+  return tmpID;
 }
 
 //Returns whether enclave is scheduled on this core.
@@ -320,6 +319,81 @@ enclave_id_t managementRoutine(const CoreID_t managementCore) {
   return retVal;
 }
 
+//TODO import this from the encoding.h in Spike
+// page table entry (PTE) fields
+#define PTE_V           (0x001) // Valid
+#define PTE_R           (0x002) // Read
+#define PTE_W           (0x004) // Write
+#define PTE_X           (0x008) // Execute
+#define PTE_U           (0x010) // User
+#define PTE_G           (0x020) // Global
+#define PTE_A           (0x040) // Accessed
+#define PTE_D           (0x080) // Dirty
+#define PTE_PPN_SHIFT   (10)
+#define SATP_MODE_SV39  (8L)
+
+enum boolean installPageTable(Address_t pageTableBase, enclave_id_t id) {
+  uint64_t tmpEntry = 0;
+  uint64_t *pageTablePtr = (uint64_t *) pageTableBase;
+  struct EnclaveData_t *data = getEnclaveDataPointer(id);
+
+  if(data == 0 || data->state != STATE_LIVE || data->pagesDonated == 0 || data->codeEntryPoint == 0) {
+    output_string("management.c: error in installing page table\n");
+    return BOOL_FALSE;
+  }
+
+  if(data->pagesDonated > (1 << 9)) { //This means the second level of page table is needed
+    output_string("management.c: error currently not supporting enclaves larger than 2 MiB\n");
+    data->state = STATE_ERROR;
+    return BOOL_FALSE;
+  }
+
+  //Fill three pages with zeroes, which will be used to set up an SV39 page table
+  for(int i = 0; i < 3*PAGE_SIZE/sizeof(uint64_t); i++) {
+    pageTablePtr[i] = 0;
+  }
+
+  //Set up first-level page table
+  tmpEntry = PTE_U | PTE_V;
+  tmpEntry |= ((pageTableBase + PAGE_SIZE) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
+  pageTablePtr[ENCLAVE_VIRTUAL_ADDRESS_BASE >> (PAGE_BIT_SHIFT + 9 + 9)] = tmpEntry; //Only mapping addresses starting from ENCLAVE_VIRTUAL_ADDRESS_BASE
+
+  //Set up second-level page table
+  tmpEntry = PTE_U | PTE_V;
+  tmpEntry |= ((pageTableBase + 2*PAGE_SIZE) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
+  pageTablePtr[PAGE_SIZE] = tmpEntry; //Assuming 2^9 pages (2 MiB) should be enough memory per enclave for now
+
+  //Set up third-level page table
+  for(uint16_t i = 0; i < data->pagesDonated; i++) {
+    tmpEntry = PTE_U | PTE_X | PTE_W | PTE_R | PTE_V;
+    tmpEntry |= ((ENCLAVE_VIRTUAL_ADDRESS_BASE + i*PAGE_SIZE) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
+    pageTablePtr[2*PAGE_SIZE + i] = tmpEntry;
+  }
+
+  //Enable paging in S-mode
+  tmpEntry = ((SATP_MODE_SV39 << 60) | (pageTableBase >> PAGE_BIT_SHIFT));
+  asm volatile(
+    "csrw satp, %0"
+    : //output
+    : "r"(tmpEntry)//input
+    : //clobbered
+  );
+
+  //Check that satp was written successfully
+  asm volatile(
+    "csrr %0, satp"
+    : "=r"(tmpEntry)//output
+    : //input
+    : //clobbered
+  );
+  if(tmpEntry == 0) {
+    data->state = STATE_ERROR;
+    return BOOL_FALSE;
+  }
+
+  return BOOL_TRUE;
+}
+
 Address_t initialize() {
   CoreID_t coreID = getCoreID();
   enclave_id_t oldEnclave = getCurrentEnclaveID();
@@ -372,13 +446,21 @@ Address_t initialize() {
       tmpEnclave = managementRoutine(coreID);
       if(tmpEnclave != ENCLAVE_INVALID_ID) {
         SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
-        return waitForEnclave(tmpEnclave);
+        waitForEnclave(tmpEnclave);
+        if(installPageTable(ENCLAVE_PAGE_TABLES_BASE_ADDRESS, tmpEnclave) == BOOL_TRUE) {
+          return ENCLAVE_VIRTUAL_ADDRESS_BASE;
+        } else {
+          return 0;
+        }
       }
       //wait for 1000 milliseconds
     }
   }
   initManagementInterruptTimer();
-  return waitForEnclave(ENCLAVE_INVALID_ID);
+  tmpEnclave = waitForEnclave(ENCLAVE_INVALID_ID);
+  //TODO Calculate the base address of the page table when there is more than one enclave core
+  //if(installPageTable(<<baseAddress>>, tmpEnclave) == BOOL_TRUE) return ENCLAVE_VIRTUAL_ADDRESS_BASE;
+  return 0;
 }
 
 void normalWorld() {
