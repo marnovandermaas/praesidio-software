@@ -242,7 +242,6 @@ enclave_id_t waitForEnclave(enclave_id_t enclaveID) {
 //Returns whether enclave is scheduled on this core.
 enclave_id_t managementRoutine(const CoreID_t managementCore) {
   enclave_id_t retVal = ENCLAVE_INVALID_ID;
-  struct Context_t savedContext;
   int index;
   enclave_id_t savedEnclaveID = getCurrentEnclaveID();
   static enclave_id_t internalArgument = ENCLAVE_INVALID_ID;
@@ -398,6 +397,7 @@ Address_t initialize() {
   CoreID_t coreID = getCoreID();
   enclave_id_t oldEnclave = getCurrentEnclaveID();
   enclave_id_t tmpEnclave = ENCLAVE_INVALID_ID;
+
   SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
   if(oldEnclave != ENCLAVE_INVALID_ID) {
       struct EnclaveData_t *enclaveData = getEnclaveDataPointer(oldEnclave);
