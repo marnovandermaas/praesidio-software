@@ -53,6 +53,9 @@ struct EnclaveData_t * getEnclaveDataPointer(enclave_id_t id) {
     //TODO add support for more enclaves than fit on one page.
     struct EnclaveData_t *enclaveData = (struct EnclaveData_t *) ENCLAVE_DATA_BASE_ADDRESS;
     int i;
+    if(id == ENCLAVE_INVALID_ID || id == ENCLAVE_MANAGEMENT_ID || id == ENCLAVE_DEFAULT_ID) {
+      return 0;
+    }
     for(i = 0; ; i++) {
       if(i >= 2*PAGE_SIZE / sizeof(struct EnclaveData_t)) {
         return 0;
