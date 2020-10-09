@@ -18,6 +18,7 @@ enum boolean initialization_done = BOOL_FALSE;
 #define MTIME_BASE    (CLINT_BASE + 0xbff8)
 #define IRQ_M_TIMER   (7)
 #define MSTATUS_MIE   (0x00000008)
+#define CAUSE_SUPERVISOR_ECALL (0x9)
 
 void resetManagementInterruptTimer() {
   volatile unsigned long long currentTime;
@@ -375,9 +376,11 @@ void normalWorld() {
   }
 }
 
-void handleTrap() {
+//Returns 1 when an enclave is done running and 0 if it was a handled trap and needs to be returned.
+int handleTrap() {
   int setMTIP = MSTATUS_MIE;
   int mipVal = 0;
+  int mcauseVal = 0;
 #ifdef PRAESIDIO_DEBUG
   OUTPUT_CHAR('&');
 #endif
@@ -398,4 +401,21 @@ void handleTrap() {
     output_string("management.c: cannot recover from trap.\n");
     while(1){} //TODO put enclave in error mode and return back to initialize.
   }
+  asm volatile(
+    "csrr %0, mcause"
+    : "=r"(mcauseVal)//output
+    : //input
+    : //clobbered
+  );
+  if(mcauseVal == CAUSE_SUPERVISOR_ECALL) {
+    asm volatile(
+      "csrw mcause, zero"
+      : //output
+      : //input
+      : //clobbered
+    );
+    return 1;
+  }
+  //TODO check for other causes
+  return 0;
 }

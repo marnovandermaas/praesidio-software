@@ -16,7 +16,18 @@ enclave:
   la    t0, trap
   csrw  mtvec, t0
   call  initialize
-  jalr  x1, a0, 0
+  #set MEPC to a0
+  csrw  mepc, a0
+  #set mstatus.MPP to S
+  addi  t1, zero, 1
+  slli  t1, t1, 12
+  csrc  mstatus, t1 #clear bit 12
+  addi  t1, zero, 1
+  slli  t1, t1, 11
+  csrs  mstatus, t1 #set bit 11
+  #go to S-mode
+  mret
+  #jalr  x1, a0, 0
   j     entry
 
 normal:
@@ -69,6 +80,11 @@ trap:
   # Call the C trap handler
   call  handleTrap
 
+  # Check whether enclave is done running
+  beqz a0, restore
+  j entry
+
+restore:
   # Restore registers
   ld ra, 0(sp)
   ld sp, 8(sp)
