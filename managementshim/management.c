@@ -13,11 +13,14 @@ struct ManagementState_t state;
 enum boolean initialization_done = BOOL_FALSE;
 
 //Defines taken out of encoding.h and clint.cc from Spike
-#define CLINT_BASE    (0x02000000)
-#define MTIMECMP_BASE (CLINT_BASE + 0x4000)
-#define MTIME_BASE    (CLINT_BASE + 0xbff8)
-#define IRQ_M_TIMER   (7)
-#define MSTATUS_MIE   (0x00000008)
+#define CLINT_BASE      (0x02000000)
+#define MTIMECMP_BASE   (CLINT_BASE + 0x4000)
+#define MTIME_BASE      (CLINT_BASE + 0xbff8)
+#define IRQ_M_TIMER     (7)
+#define MSTATUS_MIE     (0x00000008)
+#define MSTATUS_SUM     (0x00040000)
+#define MSTATUS_MPP_MSB (0x00001000)
+#define MSTATUS_MPP_LSB (0x00000800)
 #define CAUSE_SUPERVISOR_ECALL (0x9)
 
 void resetManagementInterruptTimer() {
@@ -389,6 +392,31 @@ enum boolean installPageTable(Address_t pageTableBase, enclave_id_t id) {
     data->state = STATE_ERROR;
     return BOOL_FALSE;
   }
+
+  //Set mstatus to return to s-mode and enable supervisor user memory access
+  tmpEntry = MSTATUS_MPP_MSB;
+  asm volatile(
+    "csrc mstatus, %0"
+    : //output
+    : "r"(tmpEntry) //input
+    : //clobbered
+  );
+  tmpEntry = MSTATUS_MPP_LSB | MSTATUS_SUM;
+  asm volatile(
+    "csrs mstatus, %0"
+    : //output
+    : "r"(tmpEntry) //input
+    : //clobbered
+  );
+
+  //Set mepc to the start of enclave virtual memory in preparation for mret
+  tmpEntry = ENCLAVE_VIRTUAL_ADDRESS_BASE;
+  asm volatile(
+    "csrw mepc, %0"
+    : //output
+    : "r"(tmpEntry) //input
+    : //clobbered
+  );
 
   return BOOL_TRUE;
 }
