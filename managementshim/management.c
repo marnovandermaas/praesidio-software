@@ -421,7 +421,7 @@ enum boolean installPageTable(Address_t pageTableBase, enclave_id_t id) {
   return BOOL_TRUE;
 }
 
-Address_t initialize() {
+void initialize() {
   CoreID_t coreID = getCoreID();
   enclave_id_t oldEnclave = getCurrentEnclaveID();
   enclave_id_t tmpEnclave = ENCLAVE_INVALID_ID;
@@ -476,9 +476,9 @@ Address_t initialize() {
         SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
         waitForEnclave(tmpEnclave);
         if(installPageTable(ENCLAVE_PAGE_TABLES_BASE_ADDRESS, tmpEnclave) == BOOL_TRUE) {
-          return ENCLAVE_VIRTUAL_ADDRESS_BASE;
+          return;
         } else {
-          return 0;
+          while(1) {}
         }
       }
       //wait for 1000 milliseconds
@@ -488,7 +488,7 @@ Address_t initialize() {
   tmpEnclave = waitForEnclave(ENCLAVE_INVALID_ID);
   //TODO Calculate the base address of the page table when there is more than one enclave core
   //if(installPageTable(<<baseAddress>>, tmpEnclave) == BOOL_TRUE) return ENCLAVE_VIRTUAL_ADDRESS_BASE;
-  return 0;
+  while(1) {}
 }
 
 void normalWorld() {
