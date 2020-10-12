@@ -356,20 +356,20 @@ enum boolean installPageTable(Address_t pageTableBase, enclave_id_t id) {
   }
 
   //Set up first-level page table
-  tmpEntry = PTE_U | PTE_V;
+  tmpEntry = PTE_V;
   tmpEntry |= ((pageTableBase + PAGE_SIZE) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
   pageTablePtr[ENCLAVE_VIRTUAL_ADDRESS_BASE >> (PAGE_BIT_SHIFT + 9 + 9)] = tmpEntry; //Only mapping addresses starting from ENCLAVE_VIRTUAL_ADDRESS_BASE
 
   //Set up second-level page table
-  tmpEntry = PTE_U | PTE_V;
+  tmpEntry = PTE_V;
   tmpEntry |= ((pageTableBase + 2*PAGE_SIZE) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
-  pageTablePtr[PAGE_SIZE] = tmpEntry; //Assuming 2^9 pages (2 MiB) should be enough memory per enclave for now
+  pageTablePtr[PAGE_SIZE/sizeof(uint64_t)] = tmpEntry; //Assuming 2^9 pages (2 MiB) should be enough memory per enclave for now
 
   //Set up third-level page table
   for(uint16_t i = 0; i < data->pagesDonated; i++) {
-    tmpEntry = PTE_U | PTE_X | PTE_W | PTE_R | PTE_V;
-    tmpEntry |= ((ENCLAVE_VIRTUAL_ADDRESS_BASE + i*PAGE_SIZE) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
-    pageTablePtr[2*PAGE_SIZE + i] = tmpEntry;
+    tmpEntry = PTE_X | PTE_W | PTE_R | PTE_V;
+    tmpEntry |= ((data->codeEntryPoint + i*PAGE_SIZE) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
+    pageTablePtr[2*PAGE_SIZE/sizeof(uint64_t) + i] = tmpEntry;
   }
 
   //Enable paging in S-mode
