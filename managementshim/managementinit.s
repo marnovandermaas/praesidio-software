@@ -10,6 +10,7 @@ entry:
   csrr  t0, mhartid # Get hart id
   mul   t2, t2, t0 # Calculate stack offset for this core's management code
   add   sp, t1, t2
+  csrw  mscratch, sp
   beq   t0, zero, normal
 
 enclave:
@@ -32,12 +33,14 @@ loop:
 
   nop # This nop is necessary before trap because the last two bits of the trap address will be cleared when written to mtvec
 trap:
+  csrrw sp, mscratch, sp
+
   # Make room to save registers
   addi sp, sp, -256
 
   # Save the registers
   sd ra, 0(sp)
-  sd sp, 8(sp)
+  #sd sp, 8(sp)
   sd gp, 16(sp)
   sd tp, 24(sp)
   sd t0, 32(sp)
@@ -78,7 +81,7 @@ trap:
 restore:
   # Restore registers
   ld ra, 0(sp)
-  ld sp, 8(sp)
+  #ld sp, 8(sp)
   ld gp, 16(sp)
   ld tp, 24(sp)
   ld t0, 32(sp)
@@ -111,4 +114,6 @@ restore:
 
   # Return to where we were
   addi sp, sp, 256
+
+  csrrw sp, mscratch, sp
   mret
