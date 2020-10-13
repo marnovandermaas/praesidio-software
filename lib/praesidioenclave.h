@@ -9,4 +9,6 @@
 #include "praesidiosupervisor.h"
 #include "praesidiooutput.h"
 
+void exit_enclave (void);
+
 #endif //PRAESIDIO_ENCLAVE_HEADER

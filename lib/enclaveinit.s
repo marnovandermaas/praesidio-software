@@ -17,8 +17,5 @@ entry:
     call  main              #Call the main function
 
 end:
-#    csrrw zero, 0x405, zero #This will cause the simulator to exit
-#    j end                   #Loop when finished if there is no environment to return to.
-#    mv    x1, s2
-    ecall
+    call exit_enclave
     j end

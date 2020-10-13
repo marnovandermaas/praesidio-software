@@ -50,3 +50,16 @@ int setup_communication_pages(enclave_id_t receiver_id, void *send_address, vola
   ret_val = give_read_permission(send_address, send_address, receiver_id);
   return ret_val;
 }
+
+void __exit_enclave(enum ManagementCall_t call) {
+  asm volatile(
+    "ecall"
+    :
+    :
+    :
+  );
+}
+
+void exit_enclave () {
+  __exit_enclave(MANAGE_EXIT);
+}

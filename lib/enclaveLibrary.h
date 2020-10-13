@@ -37,6 +37,13 @@ enum MessageType_t {
   MSG_INVALID     = 0xF, //This must be higher value than the other message types
 };
 
+//These values should be put in register a0 when doing an ecall to the management shim
+enum ManagementCall_t {
+  MANAGE_EXIT    = 0x1,
+  MANAGE_GETPHYS = 0x2,
+  MANAGE_MAP     = 0x3,
+};
+
 enum boolean {
   BOOL_FALSE=0,
   BOOL_TRUE=1,
