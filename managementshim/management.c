@@ -21,7 +21,11 @@ enum boolean initialization_done = BOOL_FALSE;
 #define MSTATUS_SUM     (0x00040000)
 #define MSTATUS_MPP_MSB (0x00001000)
 #define MSTATUS_MPP_LSB (0x00000800)
+
 #define CAUSE_SUPERVISOR_ECALL (0x9)
+#define CAUSE_FETCH_PAGE_FAULT (0xc)
+#define CAUSE_LOAD_PAGE_FAULT  (0xd)
+#define CAUSE_STORE_PAGE_FAULT (0xf)
 
 void resetManagementInterruptTimer() {
   volatile unsigned long long currentTime;
@@ -498,7 +502,7 @@ void normalWorld() {
 }
 
 //Returns 1 when an enclave is done running and 0 if it was a handled trap and needs to be returned.
-int handleTrap() {
+int handleTrap(enum ManagementCall_t callType) {
   int setMTIP = MSTATUS_MIE;
   int mipVal = 0;
   int mcauseVal = 0;
@@ -528,15 +532,35 @@ int handleTrap() {
     : //input
     : //clobbered
   );
-  if(mcauseVal == CAUSE_SUPERVISOR_ECALL) {
-    asm volatile(
-      "csrw mcause, zero"
-      : //output
-      : //input
-      : //clobbered
-    );
-    return 1;
+  switch(mcauseVal) {
+    case CAUSE_SUPERVISOR_ECALL:
+      switch(callType) {
+        case MANAGE_EXIT:
+          asm volatile(
+            "csrw mcause, zero"
+            : //output
+            : //input
+            : //clobbered
+          );
+          return 1;
+        case MANAGE_GETPHYS:
+          //TODO return physical address
+          return 0;
+        case MANAGE_MAP:
+          //TODO map page into virt mem
+          return 0;
+        default:
+          return 1;
+      }
+    case CAUSE_FETCH_PAGE_FAULT:
+    case CAUSE_LOAD_PAGE_FAULT:
+    case CAUSE_STORE_PAGE_FAULT:
+#ifdef PRAESIDIO_DEBUG
+      output_string("management.c: Page fault in enclave.\n");
+#endif
+      //TODO put enclave into error mode
+      return 1;
+    //TODO check for other causes
   }
-  //TODO check for other causes
   return 0;
 }
