@@ -460,15 +460,21 @@ void initialize() {
       fillPage(PAGE_DIRECTORY_BASE_ADDRESS, 0xFFFFFFFFFFFFFFFF);
       fillPage(ENCLAVE_DATA_BASE_ADDRESS, 0x0000000000000000); //Fill the second page as well.
       struct EnclaveData_t *enclaveDataPointer = (struct EnclaveData_t *) ENCLAVE_DATA_BASE_ADDRESS;
+#ifdef PRAESIDIO_DEBUG
+      output_string("management.c: clearing enclave data");
+#endif
       for(int i = 0; i < 2*PAGE_SIZE / sizeof(struct EnclaveData_t); i++) {
 #ifdef PRAESIDIO_DEBUG
-        output_string("management.c: clearing enclave data\n");
+        OUTPUT_CHAR('.');
 #endif
         enclaveDataPointer[i].state = STATE_EMPTY;
         enclaveDataPointer[i].pagesDonated = 0;
         enclaveDataPointer[i].eID = ENCLAVE_INVALID_ID;
         enclaveDataPointer[i].codeEntryPoint = 0;
       }
+#ifdef PRAESIDIO_DEBUG
+      OUTPUT_CHAR('\n');
+#endif
 
       clearWorkingMemory();
       initialization_done = BOOL_TRUE; //This starts the normal world
