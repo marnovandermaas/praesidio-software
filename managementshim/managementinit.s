@@ -74,17 +74,15 @@ trap:
 
   # Check whether stack pointer is within management memory
   # TODO check that the request also came from M-mode otherwise it can be exploited
-  csrrw sp, mscratch, sp
   la t0, __mem
   la t1, __size
   add t1, t0, t1
-  mv t2, sp
-  csrrw sp, mscratch, sp
+  csrr t2, mepc
   mv s0, zero
   bgt t2, t1, trapcall
   blt t2, t0, trapcall
   mv s0, sp
-  mv sp, t2
+  csrr sp, mscratch
 
 trapcall:
   # Call the C trap handler
