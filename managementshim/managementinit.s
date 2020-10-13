@@ -72,8 +72,7 @@ trap:
   sd t5, 232(sp)
   sd t6, 240(sp)
 
-  # Check whether stack pointer is within management memory
-  # TODO check that the request also came from M-mode otherwise it can be exploited
+  # Check whether the exception PC is within management memory
   la t0, __mem
   la t1, __size
   add t1, t0, t1
@@ -81,6 +80,12 @@ trap:
   mv s0, zero
   bgt t2, t1, trapcall
   blt t2, t0, trapcall
+  # Check whether trap came from m-mode
+  csrr t0, mstatus
+  la t1, __mpp
+  and t0, t0, t1
+  bnez t0, trapcall
+  # Store current sp and reuse context sp in case exception came from within management shim
   mv s0, sp
   csrr sp, mscratch
 
@@ -93,6 +98,7 @@ trapcall:
   j entry
 
 restore:
+  # Restore base stack pointer in case the exception came from within the management shim
   beqz s0, realrestore
   mv sp, s0
 realrestore:
