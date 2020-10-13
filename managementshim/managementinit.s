@@ -11,6 +11,7 @@ entry:
   mul   t2, t2, t0 # Calculate stack offset for this core's management code
   add   sp, t1, t2
   csrw  mscratch, sp
+  addi  sp, sp, -256 # Always have room at the top of the stack to save registers
   beq   t0, zero, normal
 
 enclave:
@@ -71,6 +72,21 @@ trap:
   sd t5, 232(sp)
   sd t6, 240(sp)
 
+  # Check whether stack pointer is within management memory
+  # TODO check that the request also came from M-mode otherwise it can be exploited
+  csrrw sp, mscratch, sp
+  la t0, __mem
+  la t1, __size
+  add t1, t0, t1
+  mv t2, sp
+  csrrw sp, mscratch, sp
+  mv s0, zero
+  bgt t2, t1, trapcall
+  blt t2, t0, trapcall
+  mv s0, sp
+  mv sp, t2
+
+trapcall:
   # Call the C trap handler
   call  handleTrap
 
@@ -79,6 +95,9 @@ trap:
   j entry
 
 restore:
+  beqz s0, realrestore
+  mv sp, s0
+realrestore:
   # Restore registers
   ld ra, 0(sp)
   #ld sp, 8(sp)
