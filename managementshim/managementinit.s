@@ -94,14 +94,20 @@ trapcall:
   call  handleTrap
 
   # Check whether enclave is done running
+  li t0, 2
   beqz a0, restore
+  beq a0, t0, keepret
   j entry
-
+keepret:
+  mv a0, a1
+  j partialrestore
 restore:
   # Restore base stack pointer in case the exception came from within the management shim
-  beqz s0, realrestore
+  beqz s0, fullrestore
   mv sp, s0
-realrestore:
+fullrestore:
+  ld a0, 72(sp)
+partialrestore:
   # Restore registers
   ld ra, 0(sp)
   #ld sp, 8(sp)
@@ -112,7 +118,7 @@ realrestore:
   ld t2, 48(sp)
   ld s0, 56(sp)
   ld s1, 64(sp)
-  ld a0, 72(sp)
+  #ld a0, 72(sp)
   ld a1, 80(sp)
   ld a2, 88(sp)
   ld a3, 96(sp)

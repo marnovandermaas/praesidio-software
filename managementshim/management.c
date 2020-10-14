@@ -507,11 +507,44 @@ void normalWorld() {
   }
 }
 
-//Returns 1 when an enclave is done running and 0 if it was a handled trap and needs to be returned.
-int handleTrap(enum ManagementCall_t callType) {
+struct trapReturn {
+    int status; //assuming this is a0
+    Address_t retAddr; //assuming this is a1
+};
+
+void __advance_mepc() {
+  uint64_t nextpc;
+  asm volatile(
+    "csrr %0, mepc"
+    : "=r"(nextpc)//output
+    : //input
+    : //clobbered
+  );
+  nextpc += 4; //Jump to instruction after ecall, which is 4 bytes
+  asm volatile(
+    "csrw mepc, %0"
+    : //output
+    : "r"(nextpc)//input
+    : //clobbered
+  );
+}
+
+//Returns:
+// status = 2 if it was an ecall and retAddr is populated
+// status = 1 when an enclave is done running
+// status = 0 if it was a handled trap and needs to be returned
+struct trapReturn handleTrap(enum ManagementCall_t callType, Address_t argAddress, enclave_id_t argId) {
   int setMTIP = MSTATUS_MIE;
   int mipVal = 0;
   int mcauseVal = 0;
+  struct EnclaveData_t *data = 0;
+  uint64_t tmpEntry;
+  enclave_id_t oldEnclave = getCurrentEnclaveID();
+  struct trapReturn retVal;
+  retVal.status = 0;
+  retVal.retAddr = 0;
+
+  SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID);
 #ifdef PRAESIDIO_DEBUG
   OUTPUT_CHAR('&');
 #endif
@@ -548,16 +581,43 @@ int handleTrap(enum ManagementCall_t callType) {
             : //input
             : //clobbered
           );
-          return 1;
-        case MANAGE_GETPHYS:
+          retVal.status = 1;
+          break;
+        case MANAGE_SETREADER:
           //TODO return physical address
-          return 0;
-        case MANAGE_MAP:
+          data = getEnclaveDataPointer(oldEnclave);
+          retVal.status = 2;
+          retVal.retAddr = argAddress - ENCLAVE_VIRTUAL_ADDRESS_BASE - MAILBOX_SIZE + data->codeEntryPoint;
+          retVal.retAddr = (retVal.retAddr - DRAM_BASE) >> PAGE_BIT_SHIFT;
+
+          volatile struct page_tag_t *page_tag = (volatile struct page_tag_t *) (TAGDIRECTORY_BASE + (retVal.retAddr*sizeof(struct page_tag_t)));
+          if(page_tag->owner == oldEnclave) {
+            page_tag->reader = argId;
+          } else {
+            retVal.retAddr = 0;
+          }
+          __advance_mepc();
+          break;
+        case MANAGE_MAPMAIL:
           //TODO map page into virt mem
-          return 0;
+          data = getEnclaveDataPointer(oldEnclave);
+          tmpEntry = PTE_R | PTE_V;
+          tmpEntry |= ((argAddress) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
+          ((uint64_t *) ENCLAVE_PAGE_TABLES_BASE_ADDRESS)[2*PAGE_SIZE/sizeof(uint64_t) + data->pagesDonated] = tmpEntry;
+          retVal.status = 2;
+          retVal.retAddr = ENCLAVE_VIRTUAL_ADDRESS_BASE + MAILBOX_SIZE + data->pagesDonated*PAGE_SIZE;
+          data->pagesDonated += 1;
+          data->receivePages += 1;
+          __advance_mepc();
+          break;
         default:
-          return 1;
+#ifdef PRAESIDIO_DEBUG
+          output_string("management.c: Error invalid syscall.\n");
+#endif
+          retVal.status = 1;
+          break;
       }
+      break;
     case CAUSE_FETCH_PAGE_FAULT:
     case CAUSE_LOAD_PAGE_FAULT:
     case CAUSE_STORE_PAGE_FAULT:
@@ -565,8 +625,13 @@ int handleTrap(enum ManagementCall_t callType) {
       output_string("management.c: Page fault in enclave.\n");
 #endif
       //TODO put enclave into error mode
-      return 1;
+      retVal.status = 1;
+      break;
+    default:
+      break;
     //TODO check for other causes
   }
-  return 0;
+
+  SWITCH_ENCLAVE_ID(oldEnclave);
+  return retVal;
 }

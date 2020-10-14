@@ -39,9 +39,9 @@ enum MessageType_t {
 
 //These values should be put in register a0 when doing an ecall to the management shim
 enum ManagementCall_t {
-  MANAGE_EXIT    = 0x1,
-  MANAGE_GETPHYS = 0x2,
-  MANAGE_MAP     = 0x3,
+  MANAGE_EXIT      = 0x1,
+  MANAGE_SETREADER = 0x2,
+  MANAGE_MAPMAIL   = 0x3,
 };
 
 enum boolean {
