@@ -32,7 +32,7 @@ void resetManagementInterruptTimer() {
   CoreID_t coreID = getCoreID();
   currentTime = *((volatile unsigned long long *) MTIME_BASE);
   currentTime += 100000;
-  *((volatile unsigned long long *) (MTIMECMP_BASE + (8*coreID))) = currentTime;
+  *((volatile unsigned long long *) (Address_t) (MTIMECMP_BASE + (8*coreID))) = currentTime;
 }
 
 void initManagementInterruptTimer() {
