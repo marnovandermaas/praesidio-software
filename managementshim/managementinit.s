@@ -84,7 +84,7 @@ trap:
   csrr t0, mstatus
   la t1, __mpp
   and t0, t0, t1
-  bnez t0, trapcall
+  bne t0, t1, trapcall
   # Store current sp and reuse context sp in case exception came from within management shim
   mv s0, sp
   csrr sp, mscratch
