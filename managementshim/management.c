@@ -216,7 +216,7 @@ enclave_id_t waitForEnclave(enclave_id_t enclaveID) {
   enclave_id_t tmpID;
 
 #ifdef PRAESIDIO_DEBUG
-  output_string("waitForEnclave\n");
+  output_string("management.c: waitForEnclave\n");
 #endif
   if(enclaveID == ENCLAVE_INVALID_ID) {
     while (1) {
@@ -237,7 +237,7 @@ enclave_id_t waitForEnclave(enclave_id_t enclaveID) {
   enclaveData = getEnclaveDataPointer(tmpID);
   if(enclaveData == 0 || enclaveData->codeEntryPoint == 0 || enclaveData->eID != tmpID) {
 #ifdef PRAESIDIO_DEBUG
-    output_string("waitForEnclave: ERROR enclave entry point not found!\n");
+    output_string("management.c: waitForEnclave ERROR enclave entry point not found!\n");
 #endif
     return ENCLAVE_INVALID_ID;
   }
@@ -270,7 +270,7 @@ enclave_id_t managementRoutine(const CoreID_t managementCore) {
     switch(message.type) {
       case MSG_CREATE:
 #ifdef PRAESIDIO_DEBUG
-        output_string("Received create enclave message.\n");
+        output_string("management.c: Received create enclave message.\n");
 #endif
         index = createEnclave();
         if(index >= 0) {
@@ -282,19 +282,19 @@ enclave_id_t managementRoutine(const CoreID_t managementCore) {
         break;
       case MSG_DONATE_PAGE:
 #ifdef PRAESIDIO_DEBUG
-        output_string("Received donate page enclave message.\n");
+        output_string("management.c: Received donate page enclave message.\n");
 #endif
         donatePage(message.arguments[0], message.arguments[1]);
         break;
       case MSG_FINALIZE:
 #ifdef PRAESIDIO_DEBUG
-        output_string("Received finalize enclave message.\n");
+        output_string("management.c: Received finalize enclave message.\n");
 #endif
         finalizeEnclave(message.arguments[0]);
         break;
       case MSG_RUN:
 #ifdef PRAESIDIO_DEBUG
-        output_string("Received switch enclave message.\n");
+        output_string("management.c: Received switch enclave message.\n");
 #endif
         //TODO make this work with multiple enclave cores.
         if(chosenCore == managementCore) {
@@ -305,19 +305,19 @@ enclave_id_t managementRoutine(const CoreID_t managementCore) {
         break;
       case MSG_ATTEST:
 #ifdef PRAESIDIO_DEBUG
-        output_string("Received attest enclave message.\n");
+        output_string("management.c: Received attest enclave message.\n");
 #endif
         //TODO implement attestation using the measurements of the management shim and the enclave.
         break;
       case MSG_DELETE:
 #ifdef PRAESIDIO_DEBUG
-        output_string("Received delete enclave message.\n");
+        output_string("management.c: Received delete enclave message.\n");
 #endif
         //TODO implement delete enclave when management shim interupts enclaves
         break;
 #ifdef PRAESIDIO_DEBUG
       default:
-        output_string("Received message with unknown type.\n");
+        output_string("management.c: Received message with unknown type.\n");
         break;
 #endif
     }
@@ -403,6 +403,7 @@ enum boolean installPageTable(Address_t pageTableBase, enclave_id_t id) {
   );
   if(tmpEntry == 0) {
     data->state = STATE_ERROR;
+    output_string("management.c: error failure enabling paging\n");
     return BOOL_FALSE;
   }
 
@@ -496,9 +497,11 @@ void initialize() {
       if(tmpEnclave != ENCLAVE_INVALID_ID) {
         SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID - coreID);
         waitForEnclave(tmpEnclave);
+        //TODO calculate page table base based on hart ID
         if(installPageTable(ENCLAVE_PAGE_TABLES_BASE_ADDRESS, tmpEnclave) == BOOL_TRUE) {
           return;
         } else {
+          output_string("management.c: failure installing pages entering infinite loop.\n");
           while(1) {}
         }
       }
@@ -509,6 +512,7 @@ void initialize() {
   tmpEnclave = waitForEnclave(ENCLAVE_INVALID_ID);
   //TODO Calculate the base address of the page table when there is more than one enclave core
   //if(installPageTable(<<baseAddress>>, tmpEnclave) == BOOL_TRUE) return ENCLAVE_VIRTUAL_ADDRESS_BASE;
+  output_string("management.c: error currently only supporting single core entering infinite loop.\n");
   while(1) {}
 }
 
