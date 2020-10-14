@@ -17,8 +17,6 @@
 #define MANAGEMENT_STACK_BASE_ADDRESS     ((Address_t) ENCLAVE_DATA_BASE_ADDRESS + 2*PAGE_SIZE)
 #define ENCLAVE_PAGE_TABLES_BASE_ADDRESS  ((Address_t) MANAGEMENT_STACK_BASE_ADDRESS + NUMBER_OF_ENCLAVE_CORES*PAGE_SIZE)
 
-#define ENCLAVE_VIRTUAL_ADDRESS_BASE      ((Address_t) 0x3f00000000) //0b 0|011 1111 00|00 0000 000|0 0000 0000 | 0000 0000 0000
-
 typedef unsigned long Address_t;
 typedef uint16_t Permissions_t;
 typedef int Register_t;

@@ -23,6 +23,8 @@
 #define DRAM_BASE               (0x80000000)
 #endif
 
+#define ENCLAVE_VIRTUAL_ADDRESS_BASE      (0x3f00000000ULL) //0b 0|011 1111 00|00 0000 000|0 0000 0000 | 0000 0000 0000
+
 typedef uint32_t enclave_id_t;
 typedef uint32_t CoreID_t;
 

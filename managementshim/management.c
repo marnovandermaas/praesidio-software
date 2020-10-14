@@ -370,10 +370,18 @@ enum boolean installPageTable(Address_t pageTableBase, enclave_id_t id) {
   pageTablePtr[PAGE_SIZE/sizeof(uint64_t)] = tmpEntry; //Assuming 2^9 pages (2 MiB) should be enough memory per enclave for now
 
   //Set up third-level page table
-  for(uint16_t i = 0; i < data->pagesDonated; i++) {
+  tmpEntry = PTE_W | PTE_R | PTE_V;
+  tmpEntry |= (MAILBOX_BASE >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
+  pageTablePtr[2*PAGE_SIZE/sizeof(uint64_t)] =tmpEntry; //First mapped page are the mailboxes
+  if(MAILBOX_SIZE > PAGE_SIZE) {
+    output_string("management.c: error not all mailboxes will be accessible to the enclave.\n");
+    data->state = STATE_ERROR;
+    return BOOL_FALSE;
+  }
+  for(uint16_t i = 0; i < data->pagesDonated; i++) { //Followed by the donated pages from the normal world
     tmpEntry = PTE_X | PTE_W | PTE_R | PTE_V;
     tmpEntry |= ((data->codeEntryPoint + i*PAGE_SIZE) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
-    pageTablePtr[2*PAGE_SIZE/sizeof(uint64_t) + i] = tmpEntry;
+    pageTablePtr[2*PAGE_SIZE/sizeof(uint64_t) + i + 1] = tmpEntry;
   }
 
   //Enable paging in S-mode
@@ -413,8 +421,8 @@ enum boolean installPageTable(Address_t pageTableBase, enclave_id_t id) {
     : //clobbered
   );
 
-  //Set mepc to the start of enclave virtual memory in preparation for mret
-  tmpEntry = ENCLAVE_VIRTUAL_ADDRESS_BASE;
+  //Set mepc to the start of enclave code in preparation for mret
+  tmpEntry = ENCLAVE_VIRTUAL_ADDRESS_BASE + MAILBOX_SIZE;
   asm volatile(
     "csrw mepc, %0"
     : //output
