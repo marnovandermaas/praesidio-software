@@ -32,6 +32,7 @@ enum EnclaveState_t {
 struct EnclaveData_t {
   enum EnclaveState_t state;
   uint16_t pagesDonated;
+  uint16_t receivePages;
   enclave_id_t eID;
   Address_t codeEntryPoint;
 };

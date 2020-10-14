@@ -131,6 +131,7 @@ int createEnclave() {
 #endif
   enclaveData[i].state = STATE_CREATED;
   enclaveData[i].pagesDonated = 0;
+  enclaveData[i].receivePages = 0;
   enclaveData[i].eID = state.nextEnclaveID;
   state.nextEnclaveID += 1;
   enclaveData[i].codeEntryPoint = 0;
@@ -343,7 +344,7 @@ enum boolean installPageTable(Address_t pageTableBase, enclave_id_t id) {
   uint64_t *pageTablePtr = (uint64_t *) pageTableBase;
   struct EnclaveData_t *data = getEnclaveDataPointer(id);
 
-  if(data == 0 || data->state != STATE_LIVE || data->pagesDonated == 0 || data->codeEntryPoint == 0) {
+  if(data == 0 || data->state != STATE_LIVE || data->pagesDonated == 0 || data->codeEntryPoint == 0 || data->receivePages != 0) {
     output_string("management.c: error in installing page table\n");
     return BOOL_FALSE;
   }
@@ -444,6 +445,7 @@ void initialize() {
       if(enclaveData != 0) {
           enclaveData->state = STATE_EMPTY;
           enclaveData->pagesDonated = 0;
+          enclaveData->receivePages = 0;
           enclaveData->eID = ENCLAVE_INVALID_ID;
           enclaveData->codeEntryPoint = 0;
       }
@@ -477,6 +479,7 @@ void initialize() {
 #endif
         enclaveDataPointer[i].state = STATE_EMPTY;
         enclaveDataPointer[i].pagesDonated = 0;
+        enclaveDataPointer[i].receivePages = 0;
         enclaveDataPointer[i].eID = ENCLAVE_INVALID_ID;
         enclaveDataPointer[i].codeEntryPoint = 0;
       }
