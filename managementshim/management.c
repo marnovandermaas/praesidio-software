@@ -606,11 +606,9 @@ struct trapReturn handleTrap(enum ManagementCall_t callType, Address_t argAddres
           retVal.retAddr = (retVal.retAddr - DRAM_BASE) >> PAGE_BIT_SHIFT;
 
           volatile struct page_tag_t *page_tag = (volatile struct page_tag_t *) (TAGDIRECTORY_BASE + (retVal.retAddr*sizeof(struct page_tag_t)));
-          if(page_tag->owner == oldEnclave) {
-            page_tag->reader = argId;
-          } else {
-            retVal.retAddr = 0;
-          }
+          SWITCH_ENCLAVE_ID(oldEnclave); //This is to check that the enclave is the owner of the page.
+          page_tag->reader = argId;
+          SWITCH_ENCLAVE_ID(ENCLAVE_MANAGEMENT_ID);
           __advance_mepc();
           break;
         case MANAGE_MAPMAIL:
