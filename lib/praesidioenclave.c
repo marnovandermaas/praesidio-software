@@ -6,12 +6,20 @@
 #include "mailbox.h"
 
 uint64_t __management_syscall(enum ManagementCall_t callType, void *argAddress, enclave_id_t argId) {
+  uint64_t ret_val;
   asm volatile(
     "ecall"
     :
     :
     :
   );
+  asm volatile(
+    "mv %0, a0"
+    : "=r"(ret_val)
+    :
+    :
+  );
+  return ret_val;
 }
 
 //Sets read access to a page to an enclave
