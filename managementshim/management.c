@@ -616,7 +616,7 @@ struct trapReturn handleTrap(enum ManagementCall_t callType, Address_t argAddres
           data = getEnclaveDataPointer(oldEnclave);
           tmpEntry = PTE_R | PTE_V;
           tmpEntry |= ((argAddress) >> PAGE_BIT_SHIFT) << PTE_PPN_SHIFT;
-          ((uint64_t *) ENCLAVE_PAGE_TABLES_BASE_ADDRESS)[2*PAGE_SIZE/sizeof(uint64_t) + data->pagesDonated] = tmpEntry;
+          ((uint64_t *) ENCLAVE_PAGE_TABLES_BASE_ADDRESS)[2*PAGE_SIZE/sizeof(uint64_t) + data->pagesDonated + 1] = tmpEntry;
           retVal.status = 2;
           retVal.retAddr = ENCLAVE_VIRTUAL_ADDRESS_BASE + MAILBOX_SIZE + data->pagesDonated*PAGE_SIZE;
           data->pagesDonated += 1;
