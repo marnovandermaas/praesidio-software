@@ -3,7 +3,7 @@
 
 OUTPUT_ARCH( "riscv" )
 
-__mem   = 0x00000000;
+__mem   = 0x3f00001000; /* TODO make this depend on ENCLAVE_VIRTUAL_ADDRESS_BASE and MAILBOX_SIZE in enclaveLibrary.h */
 
 SECTIONS
 {

@@ -6,8 +6,8 @@
 //#include "praesidiooutput.h"
 #include "mailbox.h"
 
-void sendMessage(struct Message_t *txMsg) {
-  volatile struct Message_t *myMailbox = (struct Message_t *) MAILBOX_BASE; //Processor will automatically write to the correct mailbox.
+void __sendMessage(struct Message_t *txMsg, unsigned long mailboxRootAddress) {
+  volatile struct Message_t *myMailbox = (struct Message_t *) mailboxRootAddress; //Processor will automatically write to the correct mailbox.
   myMailbox->type = MSG_INVALID; //Mark this mailbox as invalid while writing.
   //TODO insert fence here
   myMailbox->source = getCurrentEnclaveID();
@@ -18,7 +18,7 @@ void sendMessage(struct Message_t *txMsg) {
   myMailbox->type = txMsg->type;
 }
 
-void receiveMessage(struct Message_t *rxMsg) {
+void __receiveMessage(struct Message_t *rxMsg, unsigned long mailboxRootAddress) {
   volatile struct Message_t *currentMessage;
   enclave_id_t enclave_id = getCurrentEnclaveID();
   unsigned int number_of_mailboxes = MAILBOX_SIZE / sizeof(struct Message_t);
@@ -26,7 +26,7 @@ void receiveMessage(struct Message_t *rxMsg) {
   enum MessageType_t myType;
   enclave_id_t myDestination;
   for(i = 0; i < number_of_mailboxes; i++) {
-    currentMessage = (volatile struct Message_t *) (MAILBOX_BASE + (i*sizeof(struct Message_t)));
+    currentMessage = (volatile struct Message_t *) (mailboxRootAddress + (i*sizeof(struct Message_t)));
     myType = currentMessage->type;
     myDestination = currentMessage->destination;
     if(myType < MSG_INVALID && myDestination == enclave_id) {
@@ -48,4 +48,20 @@ void receiveMessage(struct Message_t *rxMsg) {
   rxMsg->type = MSG_INVALID;
   rxMsg->source = ENCLAVE_INVALID_ID;
   rxMsg->destination = ENCLAVE_INVALID_ID;
+}
+
+void sendMessage(struct Message_t *txMsg) {
+  __sendMessage(txMsg, MAILBOX_BASE);
+}
+
+void receiveMessage(struct Message_t *rxMsg) {
+  __receiveMessage(rxMsg, MAILBOX_BASE);
+}
+
+void virtSendMessage(struct Message_t *txMsg) {
+  __sendMessage(txMsg, MAILBOX_VIRT_ADDRESS);
+}
+
+void virtReceiveMessage(struct Message_t *rxMsg) {
+  __receiveMessage(rxMsg, MAILBOX_VIRT_ADDRESS);
 }

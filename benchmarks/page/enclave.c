@@ -17,7 +17,7 @@ int main(char * output) {
         address = get_read_only_page(ENCLAVE_DEFAULT_ID);
         long_address = (volatile long long *) address;
         if(j == 0) {
-            if(give_read_permission(output, output, ENCLAVE_DEFAULT_ID)) { return -1; }
+            if(give_read_permission(output, ENCLAVE_DEFAULT_ID)) { return -1; }
         }
         while(long_address[0] != j);
         for(i = 0; i < (1 << PAGE_BIT_SHIFT) / sizeof(long long); i++) {

@@ -6,7 +6,11 @@
 
 #include "enclaveLibrary.h"
 
+#define MAILBOX_VIRT_ADDRESS (ENCLAVE_VIRTUAL_ADDRESS_BASE)
+
 void sendMessage(struct Message_t *txMsg);
 void receiveMessage(struct Message_t *rxMsg);
+void virtSendMessage(struct Message_t *txMsg);
+void virtReceiveMessage(struct Message_t *rxMsg);
 
 #endif

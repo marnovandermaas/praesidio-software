@@ -10,14 +10,20 @@
 #define ENCLAVE_DEFAULT_ID    (0x00000000)
 #define ENCLAVE_INVALID_ID    (0xFFFFFFFF)
 
- //These base number should be above 0x020c 0000 which is the end of CLINT and below 0x8000 0000 which is the start of DRAM
-#define MANAGEMENT_SHIM_BASE (0x04000000)
-#define MAILBOX_BASE            (0x03000000)
-#define MAILBOX_SIZE            (1 << PAGE_BIT_SHIFT)
+//These base number should be above 0x020c 0000 which is the end of CLINT and below 0x8000 0000 which is the start of DRAM
+#define TAGDIRECTORY_BASE         (0x05000000)
+#define TAGDIRECTORY_SIZE         (0x01000000)
+#define MANAGEMENT_SHIM_BASE      (0x04000000)
+#define MANAGEMENT_SHIM_CODE_SIZE (0x00004000)
+#define MAX_MANAGEMENT_SHIM_SIZE  (0x01000000)
+#define MAILBOX_BASE              (0x03000000)
+#define MAILBOX_SIZE              (1 << PAGE_BIT_SHIFT)
 
 #ifndef DRAM_BASE
 #define DRAM_BASE               (0x80000000)
 #endif
+
+#define ENCLAVE_VIRTUAL_ADDRESS_BASE      (0x3f00000000ULL) //0b 0|011 1111 00|00 0000 000|0 0000 0000 | 0000 0000 0000
 
 typedef uint32_t enclave_id_t;
 typedef uint32_t CoreID_t;
@@ -33,6 +39,13 @@ enum MessageType_t {
   MSG_INVALID     = 0xF, //This must be higher value than the other message types
 };
 
+//These values should be put in register a0 when doing an ecall to the management shim
+enum ManagementCall_t {
+  MANAGE_EXIT      = 0x1,
+  MANAGE_SETREADER = 0x2,
+  MANAGE_MAPMAIL   = 0x3,
+};
+
 enum boolean {
   BOOL_FALSE=0,
   BOOL_TRUE=1,
@@ -43,6 +56,11 @@ struct Message_t {
   enclave_id_t source;
   enclave_id_t destination;
   uint64_t arguments[2];
+};
+
+struct page_tag_t {
+  enclave_id_t owner;
+  enclave_id_t reader;
 };
 
 #endif //ENCLAVE_LIBRARY_HEADER
